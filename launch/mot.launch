@@ -3,24 +3,24 @@
     <arg name="visualize" default="false" />
     <arg name="dev_file" default="" />
     <arg name="node_name" default="mot_node" />
+    <arg name="tracker" default="gmphd_2d_pos_vel" /> <!-- Tracker configuration file to use --> 
 
     <!-- Load initial state and tracker parameters into the tracker node's namespace from file -->
-    <!-- <group ns="$(arg node_name)">
-        <rosparam file="$(find ros_multitarget_tracking)/config/tracker_params.yaml" />
-        <rosparam file="$(find ros_multitarget_tracking)/config/sensor_params.yaml" />
-    </group> -->
+    <group ns="$(arg node_name)">
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg tracker).yaml" />
+    </group>
 
     <!-- Launch leg tracker node -->
     <include file="$(find autonomy_leg_detection)/launch/leg_detection.launch" />
 
-    <!-- Launch multitarget tracker node -->
-    <node name="mot_node" pkg="ros_multiobject_tracking" type="multiobject_tracking_node" output="screen" >
+    <!-- Launch multiobject tracker node -->
+    <node name="$(arg node_name)" pkg="ros_multiobject_tracking" type="multiobject_tracking_node" output="screen" ns="$(arg node_name)">
         <param name="visualize" value="$(arg visualize)" />
     </node>
 
     <!-- Play .bag file, if desired -->
     <group unless="$(eval dev_file == '')" >
-        <node pkg="rosbag" type="play" name="player" output="screen" args="--clock --loop --pause $(find ros_multitarget_tracking)/$(arg dev_file)"/>
+        <node pkg="rosbag" type="play" name="player" output="screen" args="--clock --loop --pause $(find ros_multiobject_tracking)/$(arg dev_file)"/>
     </group>
 
     <!-- Launch RViz, if desired -->

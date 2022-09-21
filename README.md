@@ -10,9 +10,7 @@ and place them in the `/data` folder.
 roslaunch ros_multiobject_tracking mtt.launch dev_file:='data/1-person-3.bag' visualize:=true
 
 ## To-do list
-- Create trackers.h and trackers.cpp file with virtual base class (tracker) and child classes (GM-PHD for now)
-- Instantiate the tracker object in ROS node
-- Add initial state from yaml file
+- Add tracker params and initial state from yaml file
 - Add propagation
     - Generate process transition and noise matrices
     - Add as member variables of virtual class objects

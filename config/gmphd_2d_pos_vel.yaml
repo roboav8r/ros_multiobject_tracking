@@ -1,0 +1,4 @@
+# Multiobject Tracker configuration file
+tracker_type: gmphd
+n_spatial_dimensions: 2 # Integer to specify the number of spatial dimensions to track, e.g. 2 for 2D (default) or 3 for 3D.
+n_motion_states: 2 # Integer to specify how many motion types to compute. 1 = position only, 2 = position and velocity

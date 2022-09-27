@@ -2,19 +2,19 @@
 
 int main(int argc, char **argv)
 {
-
+  // Create ROS node
   ros::init(argc, argv, "mot_node");
-
   ros::NodeHandle n;
 
+  // Create subscribers
   ros::Subscriber lidar_sub = n.subscribe("/legs",10, SensorCallbacks::LegTrackerCallback);
+
+  // Read in initial state, populate Gaussian Mixture object
+  n.getParam("x0", xInitial);
 
   // Create tracker object based on ROS param file
   // TODO: figure out how to pass these params into the tracker template.
   // Getting "‘n_spatial_dimensions’ is not usable in a constant expression" error
-  std::string trackerType;
-  int n_spatial_dimensions;
-  int n_motion_states;
   n.getParam("tracker_type", trackerType);
   n.getParam("n_spatial_dimensions", n_spatial_dimensions);
   n.getParam("n_motion_states", n_motion_states);

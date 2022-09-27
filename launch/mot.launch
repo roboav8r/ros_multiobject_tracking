@@ -3,6 +3,7 @@
     <arg name="visualize" default="false" />
     <arg name="dev_file" default="" />
     <arg name="node_name" default="mot_node" />
+    <arg name="initial_state" default="state" />
     <arg name="tracker" default="gmphd_2d_pos_vel" /> <!-- Tracker configuration file to use --> 
     <arg name="dynamics" default="dynamics" /> <!-- Tracker configuration file to use -->
 

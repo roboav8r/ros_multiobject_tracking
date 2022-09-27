@@ -10,5 +10,6 @@
 
 #include "sensor_callbacks.h"
 #include "trackers.h"
+#include "dynamics_models.h"
 
 #endif  // MULTIOBJECT_TRACKING_NODE_H_

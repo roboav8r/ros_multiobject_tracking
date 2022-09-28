@@ -9,6 +9,7 @@
 
     <!-- Load initial state, tracker, and dynamics parameters into the tracker node's namespace from file -->
     <group ns="$(arg node_name)">
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg initial_state).yaml" />
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg tracker).yaml" />
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg dynamics).yaml" />
     </group>

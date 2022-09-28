@@ -10,7 +10,8 @@ int main(int argc, char **argv)
   ros::Subscriber lidar_sub = n.subscribe("/legs",10, SensorCallbacks::LegTrackerCallback);
 
   // Read in initial state, populate Gaussian Mixture object
-  n.getParam("x0", xInitial);
+  n.getParam("x0", initialStateParams);
+  GaussianDataTypes::GaussianMixture<4> initialState = ParamsToState(initialStateParams);
 
   // Create tracker object based on ROS param file
   // TODO: figure out how to pass these params into the tracker template.

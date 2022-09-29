@@ -26,4 +26,5 @@ roslaunch ros_multiobject_tracking mtt.launch dev_file:='data/1-person-3.bag' vi
 - Lock state during propagate and update steps
 - `git-lfs` for the development .rosbags
 - Launch sensors and processing based on .yaml file
-- add PMBM filter class
+- add PMBM, delta-GLMB filter classes
+- make tracker template / virtual class

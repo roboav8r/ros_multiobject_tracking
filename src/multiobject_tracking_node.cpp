@@ -20,9 +20,9 @@ int main(int argc, char **argv)
   n.getParam("n_spatial_dimensions", n_spatial_dimensions);
   n.getParam("n_motion_states", n_motion_states);
   
-  MultiObjectTrackers::GmPhdFilter<2,2> gmPhd;
+  MultiObjectTrackers::GmPhdFilter2D gmPhd(initialState);
   std::cout << trackerType << std::endl;
-  ROS_INFO("Created %s filter with %i states \n", trackerType.c_str(), gmPhd.StateDim());
+  ROS_INFO("Created 2D GM-PHD filter");
 
 
   // Create dynamics model object

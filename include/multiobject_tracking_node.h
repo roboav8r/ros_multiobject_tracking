@@ -48,9 +48,6 @@ GaussianDataTypes::GaussianMixture<4> state;
         state.Gaussians.push_back(gmComp);
 
     }
-    
-    // Add timestamp to current belief
-    //belief_.Timestamp = ros::Time::now();
 
     return state;
 

@@ -21,6 +21,9 @@ namespace MultiObjectTrackers {
             // Construct with initial state at a given time
             GmPhdFilter2D(GaussianDataTypes::GaussianMixture<4> initState) : _state(initState), _lastUpdated(ros::Time::now()) {};
 
+            // Accessors
+            GaussianDataTypes::GaussianMixture<4> State() {return _state;};
+
         private:
             GaussianDataTypes::GaussianMixture<4> _state; // State estimate
             ros::Time _lastUpdated;   // ROS timestamp when state was last updated

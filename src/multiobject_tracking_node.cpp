@@ -9,6 +9,9 @@ int main(int argc, char **argv)
   // Create subscribers
   ros::Subscriber lidar_sub = n.subscribe("/legs",10, SensorCallbacks::LegTrackerCallback);
 
+  // Create publishers
+  ros::Publisher viz_pub = n.advertise<visualization_msgs::MarkerArray>("/detection_markers",10);
+
   // Read in initial state, populate Gaussian Mixture object
   n.getParam("x0", initialStateParams);
   GaussianDataTypes::GaussianMixture<4> initialState = ParamsToState(initialStateParams);
@@ -30,7 +33,14 @@ int main(int argc, char **argv)
   n.getParam("sigma_process", sigmaP);
   DynamicsModels::LinearDynamics2D dynModel(0.1, sigmaP);
 
-  ros::spin();
+  // Loop control
+  ros::Rate loopRate(10);
 
+  while (ros::ok()) {
+    // Publish/visualize state
+    VisualizeState(viz_pub, gmPhd.State());
+    
+    ros::spinOnce();
+  }
   return 0;
 }

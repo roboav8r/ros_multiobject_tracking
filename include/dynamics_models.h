@@ -28,7 +28,7 @@ namespace DynamicsModels {
                 _updateCovMatrix();
             };
 
-            LinearDynamics2D(double deltaT, double sigmaP) : _dt(deltaT), _procNoise(sigmaP) {
+            LinearDynamics2D(float deltaT, float sigmaP) : _dt(deltaT), _procNoise(sigmaP) {
                 _transMatrix.setIdentity();
                 _covMatrix.setZero();
                 _updateTransMatrix();
@@ -38,46 +38,46 @@ namespace DynamicsModels {
             /* 
             Mutators
             */
-            void SetTimestep(double deltaT) { 
+            void SetTimestep(float deltaT) { 
                 this->_dt=deltaT;
             };
 
-            void ProbSurvival(double pS) {this->_pSurvival = pS; };
+            void ProbSurvival(float pS) {this->_pSurvival = pS; };
 
-            void ProcNoise(double sigmaP) {this->_procNoise = sigmaP; };
+            void ProcNoise(float sigmaP) {this->_procNoise = sigmaP; };
 
             /*
              Accessors
             */
             // Get probability of object survival
-            double ProbSurvival() {return _pSurvival; };
+            float ProbSurvival() {return _pSurvival; };
             
             // Get transition matrix for constant timestep
-            Eigen::Matrix<double, 4, 4> TransMatrix() {return _transMatrix;}
+            Eigen::Matrix<float, 4, 4> TransMatrix() {return _transMatrix;}
             
             // Get transition matrix for variable timestep
-            Eigen::Matrix<double, 4, 4> TransMatrix(double deltaT) {
+            Eigen::Matrix<float, 4, 4> TransMatrix(float deltaT) {
                 SetTimestep(deltaT);
                 _updateTransMatrix();
                 return _transMatrix;
             }
             
             // Get covariance matrix for constant timestep
-            Eigen::Matrix<double, 4, 4> CovMatrix() {return _covMatrix;}
+            Eigen::Matrix<float, 4, 4> CovMatrix() {return _covMatrix;}
             
             // Get covariance matrix for variable timestep
-            Eigen::Matrix<double, 4, 4> CovMatrix(double deltaT) {
+            Eigen::Matrix<float, 4, 4> CovMatrix(float deltaT) {
                 SetTimestep(deltaT);
                 _updateCovMatrix();
                 return _covMatrix;
             }
 
         private:
-            double _pSurvival;      // Object survival probability
-            double _dt;             // Timestep
-            double _procNoise;      // Process noise, sigma_p
-            Eigen::Matrix<double, 4, 4> _transMatrix;
-            Eigen::Matrix<double, 4, 4> _covMatrix;
+            float _pSurvival;      // Object survival probability
+            float _dt;             // Timestep
+            float _procNoise;      // Process noise, sigma_p
+            Eigen::Matrix<float, 4, 4> _transMatrix;
+            Eigen::Matrix<float, 4, 4> _covMatrix;
 
             // TODO: replace _update functions with more clean matrix algebra
             void _updateTransMatrix() {

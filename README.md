@@ -10,10 +10,6 @@ and place them in the `/data` folder.
 roslaunch ros_multiobject_tracking mot.launch dev_file:='data/1-person-3.bag' visualize:=true
 
 ## To-do list
-- Add initial state from yaml file
-- Add propagation
-    - Add as member variables of virtual class objects
-    - Propagate object during main loop
 - Add LiDAR sensor callback/measurement model
 - Add pruning functions
 - Add birth model
@@ -28,3 +24,6 @@ roslaunch ros_multiobject_tracking mot.launch dev_file:='data/1-person-3.bag' vi
 - Launch sensors and processing based on .yaml file
 - add PMBM, delta-GLMB filter classes
 - make tracker template / virtual class
+
+# Credit
+Much of this repo is adapted from the C++ GM-PHD implementation here: https://github.com/blefaudeux/gmphd

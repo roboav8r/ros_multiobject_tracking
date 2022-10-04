@@ -29,7 +29,10 @@ namespace MultiObjectTrackers {
             ros::Time LastUpdated() {return _lastUpdated;};
 
             // Mutators
-            void LastUpdated(const ros::Time updateTime) {this->_lastUpdated = updateTime;};
+            void LastUpdated(const ros::Time updateTime) {this->_lastUpdated = updateTime;}
+            void TruncThreshold(const float truncThresh) {this->_truncThreshold = truncThresh;}
+            void MergeThreshold(const float mergeThresh) {this->_mergeThreshold = mergeThresh;}
+            void MaxGaussians(const uint maxGaussians) {this->_maxGaussians = maxGaussians;}
 
             // Public members
             // TODO: make this a vector if tracking multiple classes with different dynamics models
@@ -55,12 +58,21 @@ namespace MultiObjectTrackers {
                 _lastUpdated = updateTime;
             };
 
+            void Prune() {
+                std::lock_guard<std::mutex> guard(TrackerMutex);
+                _state.prune(_truncThreshold, _mergeThreshold, _maxGaussians);
+            }
+
             std::mutex TrackerMutex;
 
         private:
             GaussianDataTypes::GaussianMixture<4> _state; // State estimate
             ros::Time _lastUpdated;   // ROS timestamp when state was last updated
 
+            // Pruning parameters
+            float _truncThreshold{0.1};          
+            float _mergeThreshold{4.0};
+            uint _maxGaussians {10};
     };
 
 }

@@ -22,37 +22,36 @@ int main(int argc, char **argv)
   n.getParam("tracker_type", trackerType);
   n.getParam("n_spatial_dimensions", n_spatial_dimensions);
   n.getParam("n_motion_states", n_motion_states);
-  
   MultiObjectTrackers::GmPhdFilter2D gmPhd(initialState);
-  std::cout << trackerType << std::endl;
   ROS_INFO("Created 2D GM-PHD filter");
 
-
-  // Create dynamics model object
+  // Load Dynamics Model params
   float sigmaP, pSurvival;
   n.getParam("sigma_process", sigmaP);
   n.getParam("p_survival", pSurvival);
-  //DynamicsModels::LinearDynamics2D humanDynModel(0.1, sigmaP);
   gmPhd.Dynamics.ProcNoise(sigmaP);
   gmPhd.Dynamics.ProbSurvival(pSurvival);
 
-  // Loop control
+  // Load pruning parameters into tracker
+  float truncThresh, mergeThresh;
+  int maxGaussians;
+  n.getParam("truncation_threshold", truncThresh);
+  n.getParam("merge_threshold", mergeThresh);
+  n.getParam("max_gaussians", maxGaussians);
+  gmPhd.TruncThreshold(truncThresh);
+  gmPhd.MergeThreshold(mergeThresh);
+  gmPhd.MaxGaussians(maxGaussians);
+
+  // Propagation loop control
   ros::Rate loopRate(10);
-  //double dt{0.1};
 
   while (ros::ok()) {
-    // Get delta T
-    //dt = (ros::Time::now() - gmPhd.LastUpdated()).toSec();
-    //std::cout << dt << std::endl;
 
     // Propagate step
-    // TODO update dynamics model/dt
-    //gmPhd.Dynamics.TransMatrix(dt);
-    //gmPhd.Dynamics.CovMatrix(dt);
     gmPhd.PropagateState(ros::Time::now());
-    // std::cout << gmPhd.Dynamics.TransMatrix() << std::endl;
-    // std::cout << gmPhd.Dynamics.CovMatrix() << std::endl;
-    //gmPhd.LastUpdated(ros::Time::now());
+
+    // Prune Gaussian mixture
+    gmPhd.Prune();
 
     // Publish/visualize state
     VisualizeState(viz_pub, gmPhd.State());
@@ -61,5 +60,6 @@ int main(int argc, char **argv)
     ros::spinOnce();
     loopRate.sleep();
   }
+
   return 0;
 }

@@ -1,6 +1,8 @@
 #ifndef TRACKERS_H_
 #define TRACKERS_H_
 
+#include <mutex>
+
 #include "ros/ros.h"
 #include "gaussian_datatypes.h"
 #include "dynamics_models.h"
@@ -28,7 +30,6 @@ namespace MultiObjectTrackers {
 
             // Mutators
             void LastUpdated(const ros::Time updateTime) {this->_lastUpdated = updateTime;};
-            // TODO Propagate()
 
             // Public members
             // TODO: make this a vector if tracking multiple classes with different dynamics models
@@ -37,6 +38,10 @@ namespace MultiObjectTrackers {
             double dt{0.1};
 
             void PropagateState(const ros::Time updateTime) {
+                
+                // Lock resources while modifying them
+                std::lock_guard<std::mutex> guard(TrackerMutex);
+
                 dt = (updateTime - _lastUpdated).toSec();
                 Dynamics.TransMatrix(dt);
                 Dynamics.CovMatrix(dt);
@@ -49,6 +54,8 @@ namespace MultiObjectTrackers {
 
                 _lastUpdated = updateTime;
             };
+
+            std::mutex TrackerMutex;
 
         private:
             GaussianDataTypes::GaussianMixture<4> _state; // State estimate

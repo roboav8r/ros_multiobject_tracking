@@ -27,11 +27,28 @@ namespace MultiObjectTrackers {
             ros::Time LastUpdated() {return _lastUpdated;};
 
             // Mutators
+            void LastUpdated(const ros::Time updateTime) {this->_lastUpdated = updateTime;};
             // TODO Propagate()
 
             // Public members
             // TODO: make this a vector if tracking multiple classes with different dynamics models
             DynamicsModels::LinearDynamics2D Dynamics;
+
+            double dt{0.1};
+
+            void PropagateState(const ros::Time updateTime) {
+                dt = (updateTime - _lastUpdated).toSec();
+                Dynamics.TransMatrix(dt);
+                Dynamics.CovMatrix(dt);
+
+                for (auto& gm : _state.Gaussians ) {
+                    gm.Weight = Dynamics.ProbSurvival()*gm.Weight;
+                    gm.Mean = Dynamics.TransMatrix()*gm.Mean;
+                    gm.Cov = Dynamics.CovMatrix() + Dynamics.TransMatrix()*gm.Cov*Dynamics.TransMatrix().transpose();
+                }
+
+                _lastUpdated = updateTime;
+            };
 
         private:
             GaussianDataTypes::GaussianMixture<4> _state; // State estimate

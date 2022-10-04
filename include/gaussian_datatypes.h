@@ -44,8 +44,8 @@ namespace GaussianDataTypes {
         }
 
         float Weight;
-        Eigen::Matrix<float, D, 1> Mean;
-        Eigen::Matrix<float, D, D> Cov;
+        Eigen::Matrix<double, D, 1> Mean;
+        Eigen::Matrix<double, D, D> Cov;
         //bool m_isFalseTarget;
     };
 

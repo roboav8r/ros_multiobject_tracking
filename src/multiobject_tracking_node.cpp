@@ -38,16 +38,21 @@ int main(int argc, char **argv)
 
   // Loop control
   ros::Rate loopRate(10);
-  double dt{0.1};
+  //double dt{0.1};
 
   while (ros::ok()) {
     // Get delta T
-    dt = (ros::Time::now() - gmPhd.LastUpdated()).toSec();
-    std::cout << dt << std::endl;
+    //dt = (ros::Time::now() - gmPhd.LastUpdated()).toSec();
+    //std::cout << dt << std::endl;
 
     // Propagate step
     // TODO update dynamics model/dt
-    // TODO propagate state
+    //gmPhd.Dynamics.TransMatrix(dt);
+    //gmPhd.Dynamics.CovMatrix(dt);
+    gmPhd.PropagateState(ros::Time::now());
+    // std::cout << gmPhd.Dynamics.TransMatrix() << std::endl;
+    // std::cout << gmPhd.Dynamics.CovMatrix() << std::endl;
+    //gmPhd.LastUpdated(ros::Time::now());
 
     // Publish/visualize state
     VisualizeState(viz_pub, gmPhd.State());

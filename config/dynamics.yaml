@@ -1,2 +1,2 @@
-sigma_process: 5
+sigma_process: .05
 p_survival: .99

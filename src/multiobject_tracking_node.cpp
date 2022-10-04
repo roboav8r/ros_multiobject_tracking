@@ -42,24 +42,20 @@ int main(int argc, char **argv)
   gmPhd.MergeThreshold(mergeThresh);
   gmPhd.MaxGaussians(maxGaussians);
 
-  // Propagation loop control
-  ros::Rate loopRate(10);
-
-  while (ros::ok()) {
-
+  // Setup main propagation/visualization/publisher loop (timer)
+  // ros::Rate loopRate(10);
+  ros::Timer mainTimer = n.createTimer(ros::Duration(0.1),[&](const ros::TimerEvent& event){
     // Propagate step
-    gmPhd.PropagateState(ros::Time::now());
+    gmPhd.PropagateState(event.current_real);
 
     // Prune Gaussian mixture
     gmPhd.Prune();
 
     // Publish/visualize state
     VisualizeState(viz_pub, gmPhd.State());
-    
-    // Loop control
-    ros::spinOnce();
-    loopRate.sleep();
-  }
+  });
+
+  ros::spin();
 
   return 0;
 }

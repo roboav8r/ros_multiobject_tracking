@@ -144,7 +144,6 @@ namespace GaussianDataTypes {
                     gauss_distance = diff_vec.transpose() *
                                      cov_inverse.topLeftCorner(D, D) *
                                      diff_vec;
-                    std::cout << gauss_distance << std::endl;
 
                     // Add to the set of close gaussians, if below threshold
                     if ((gauss_distance < threshold) && (gaussian.Weight != 0.f))

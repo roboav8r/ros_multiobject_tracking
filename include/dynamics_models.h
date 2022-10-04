@@ -18,7 +18,16 @@ namespace DynamicsModels {
     class LinearDynamics2D
     {
         public:
-            // Default Constructor
+            /*
+            Constructors
+            */
+            LinearDynamics2D() : _dt(0.1), _procNoise(0.1) {
+                _transMatrix.setIdentity();
+                _covMatrix.setZero();
+                _updateTransMatrix();
+                _updateCovMatrix();
+            };
+
             LinearDynamics2D(double deltaT, double sigmaP) : _dt(deltaT), _procNoise(sigmaP) {
                 _transMatrix.setIdentity();
                 _covMatrix.setZero();
@@ -26,15 +35,24 @@ namespace DynamicsModels {
                 _updateCovMatrix();
             };
 
-            // Mutators
+            /* 
+            Mutators
+            */
             void SetTimestep(double deltaT) { 
                 this->_dt=deltaT;
             };
 
+            void ProbSurvival(double pS) {this->_pSurvival = pS; };
+
+            void ProcNoise(double sigmaP) {this->_procNoise = sigmaP; };
+
             /*
              Accessors
             */
-            // Get transition matrix for constant timestep 
+            // Get probability of object survival
+            double ProbSurvival() {return _pSurvival; };
+            
+            // Get transition matrix for constant timestep
             Eigen::Matrix<double, 4, 4> TransMatrix() {return _transMatrix;}
             
             // Get transition matrix for variable timestep
@@ -55,8 +73,9 @@ namespace DynamicsModels {
             }
 
         private:
-            double _dt;                                 // Timestep
-            double _procNoise;                          // Process noise, sigma_p
+            double _pSurvival;      // Object survival probability
+            double _dt;             // Timestep
+            double _procNoise;      // Process noise, sigma_p
             Eigen::Matrix<double, 4, 4> _transMatrix;
             Eigen::Matrix<double, 4, 4> _covMatrix;
 

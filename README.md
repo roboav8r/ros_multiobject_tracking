@@ -7,7 +7,7 @@ and place them in the `/data` folder.
 
 # Usage
 ## Development with a ROS .bag file
-roslaunch ros_multiobject_tracking mtt.launch dev_file:='data/1-person-3.bag' visualize:=true
+roslaunch ros_multiobject_tracking mot.launch dev_file:='data/1-person-3.bag' visualize:=true
 
 ## To-do list
 - Add initial state from yaml file

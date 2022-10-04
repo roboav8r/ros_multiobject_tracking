@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include "gaussian_datatypes.h"
+#include "dynamics_models.h"
 
 /*
 Namespace for Tracker-specific classes and data types
@@ -23,6 +24,14 @@ namespace MultiObjectTrackers {
 
             // Accessors
             GaussianDataTypes::GaussianMixture<4> State() {return _state;};
+            ros::Time LastUpdated() {return _lastUpdated;};
+
+            // Mutators
+            // TODO Propagate()
+
+            // Public members
+            // TODO: make this a vector if tracking multiple classes with different dynamics models
+            DynamicsModels::LinearDynamics2D Dynamics;
 
         private:
             GaussianDataTypes::GaussianMixture<4> _state; // State estimate

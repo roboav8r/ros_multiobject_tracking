@@ -29,18 +29,32 @@ int main(int argc, char **argv)
 
 
   // Create dynamics model object
-  float sigmaP;
+  float sigmaP, pSurvival;
   n.getParam("sigma_process", sigmaP);
-  DynamicsModels::LinearDynamics2D dynModel(0.1, sigmaP);
+  n.getParam("p_survival", pSurvival);
+  //DynamicsModels::LinearDynamics2D humanDynModel(0.1, sigmaP);
+  gmPhd.Dynamics.ProcNoise(sigmaP);
+  gmPhd.Dynamics.ProbSurvival(pSurvival);
 
   // Loop control
   ros::Rate loopRate(10);
+  double dt{0.1};
 
   while (ros::ok()) {
+    // Get delta T
+    dt = (ros::Time::now() - gmPhd.LastUpdated()).toSec();
+    std::cout << dt << std::endl;
+
+    // Propagate step
+    // TODO update dynamics model/dt
+    // TODO propagate state
+
     // Publish/visualize state
     VisualizeState(viz_pub, gmPhd.State());
     
+    // Loop control
     ros::spinOnce();
+    loopRate.sleep();
   }
   return 0;
 }

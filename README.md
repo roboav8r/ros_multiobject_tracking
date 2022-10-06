@@ -10,8 +10,7 @@ and place them in the `/data` folder.
 roslaunch ros_multiobject_tracking mot.launch dev_file:='data/1-person-3.bag' visualize:=true
 
 ## To-do list
-- Add LiDAR sensor callback/measurement model
-- Add pruning functions
+- Add LiDAR sensor callback
 - Add birth model
 - Add spawn model
 - Add clutter model

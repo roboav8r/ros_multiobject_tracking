@@ -11,7 +11,7 @@
 #include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include "sensor_callbacks.h"
+#include "sensor_models.h"
 #include "trackers.h"
 #include "dynamics_models.h"
 #include "gaussian_datatypes.h"

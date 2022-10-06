@@ -5,13 +5,15 @@
     <arg name="node_name" default="mot_node" />
     <arg name="initial_state" default="state" />
     <arg name="tracker" default="gmphd_2d_pos_vel" /> <!-- Tracker configuration file to use --> 
-    <arg name="dynamics" default="dynamics" /> <!-- Tracker configuration file to use -->
+    <arg name="dynamics" default="dynamics" /> <!-- Dynamics configuration file to use -->
+    <arg name="sensors" default="sensors" /> <!-- Dynamics configuration file to use -->
 
     <!-- Load initial state, tracker, and dynamics parameters into the tracker node's namespace from file -->
     <group ns="$(arg node_name)">
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg initial_state).yaml" />
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg tracker).yaml" />
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg dynamics).yaml" />
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg sensors).yaml" />
     </group>
 
     <!-- Launch leg tracker node -->

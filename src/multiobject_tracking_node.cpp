@@ -9,9 +9,6 @@ int main(int argc, char **argv)
   // Create multithreaded spinner with 2 threads
   ros::MultiThreadedSpinner multiSpinner(2);
 
-  // Create subscribers
-  ros::Subscriber lidar_sub = n.subscribe("/legs",10, SensorCallbacks::LegTrackerCallback);
-
   // Create publishers
   ros::Publisher viz_pub = n.advertise<visualization_msgs::MarkerArray>("/detection_markers",10);
 
@@ -29,11 +26,21 @@ int main(int argc, char **argv)
   ROS_INFO("Created 2D GM-PHD filter");
 
   // Load Dynamics Model params
-  float sigmaP, pSurvival;
-  n.getParam("sigma_process", sigmaP);
+  float processVar, pSurvival;
+  n.getParam("process_variance", processVar);
   n.getParam("p_survival", pSurvival);
-  gmPhd.Dynamics.ProcNoise(sigmaP);
+  gmPhd.Dynamics.ProcNoise(processVar);
   gmPhd.Dynamics.ProbSurvival(pSurvival);
+
+  // Load Sensor Model params, create model & subscriber
+  float laserMeasVar, laserProbDetect;
+  n.getParam("meas_variance", laserMeasVar);
+  n.getParam("p_detection", laserProbDetect);  
+  SensorModels::Position2D laserModel(laserMeasVar, laserProbDetect);
+  std::cout << laserModel.ObsMatrix() << std::endl;
+  std::cout << laserModel.ObsCovMatrix() << std::endl;
+  // Create subscriber
+  ros::Subscriber lidar_sub = n.subscribe("/legs", 1, &SensorModels::Position2D::Callback, &laserModel);
 
   // Load pruning parameters into tracker
   float truncThresh, mergeThresh;

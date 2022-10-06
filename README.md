@@ -15,6 +15,9 @@ roslaunch ros_multiobject_tracking mot.launch dev_file:='data/1-person-3.bag' vi
 - Add birth model
 - Add spawn model
 - Add clutter model
+- Multithreading/concurrency: see 
+https://levelup.gitconnected.com/ros-spinning-threading-queuing-aac9c0a793f
+http://wiki.ros.org/roscpp/Overview/Callbacks%20and%20Spinning
 
 
 

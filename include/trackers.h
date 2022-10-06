@@ -2,6 +2,7 @@
 #define TRACKERS_H_
 
 #include <mutex>
+#include <thread>
 
 #include "ros/ros.h"
 #include "gaussian_datatypes.h"
@@ -44,6 +45,8 @@ namespace MultiObjectTrackers {
                 
                 // Lock resources while modifying them
                 std::lock_guard<std::mutex> guard(TrackerMutex);
+                std::cout << "Begin Prop in thread #"
+              << std::this_thread::get_id() << std::endl;
 
                 dt = (updateTime - _lastUpdated).toSec();
                 Dynamics.TransMatrix(dt);
@@ -56,11 +59,16 @@ namespace MultiObjectTrackers {
                 }
 
                 _lastUpdated = updateTime;
+
+                std::cout << "End Prop" << std::endl;
             };
 
             void Prune() {
                 std::lock_guard<std::mutex> guard(TrackerMutex);
+                std::cout << "Begin prune in thread #"
+              << std::this_thread::get_id() << std::endl;
                 _state.prune(_truncThreshold, _mergeThreshold, _maxGaussians);
+                std::cout << "End prune" << std::endl;
             }
 
             std::mutex TrackerMutex;

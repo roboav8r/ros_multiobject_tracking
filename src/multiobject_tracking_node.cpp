@@ -6,6 +6,9 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "mot_node");
   ros::NodeHandle n;
 
+  // Create multithreaded spinner with 2 threads
+  ros::MultiThreadedSpinner multiSpinner(2);
+
   // Create subscribers
   ros::Subscriber lidar_sub = n.subscribe("/legs",10, SensorCallbacks::LegTrackerCallback);
 
@@ -45,6 +48,8 @@ int main(int argc, char **argv)
   // Setup main propagation/visualization/publisher loop (timer)
   // ros::Rate loopRate(10);
   ros::Timer mainTimer = n.createTimer(ros::Duration(0.1),[&](const ros::TimerEvent& event){
+    std::cout << "Main Timer in thread #"
+              << std::this_thread::get_id() << std::endl;
     // Propagate step
     gmPhd.PropagateState(event.current_real);
 
@@ -53,9 +58,22 @@ int main(int argc, char **argv)
 
     // Publish/visualize state
     VisualizeState(viz_pub, gmPhd.State());
+
+    std::cout << "End Main Timer" << std::endl;
   });
 
-  ros::spin();
+  // Dummy timer to test lock/mutex
+  ros::Timer testTimer = n.createTimer(ros::Duration(0.01),[&](const ros::TimerEvent& event){
+    std::lock_guard<std::mutex> lockg(gmPhd.TrackerMutex);
+    std::cout << "Test Timer - simulating work in thread #"
+              << std::this_thread::get_id() << std::endl;
+    ros::Duration(0.05).sleep();
+    std::cout << "Work complete" << std::endl;
+  });
+
+
+  // ros::spin();
+  multiSpinner.spin();
 
   return 0;
 }

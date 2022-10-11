@@ -36,11 +36,11 @@ int main(int argc, char **argv)
   float laserMeasVar, laserProbDetect;
   n.getParam("meas_variance", laserMeasVar);
   n.getParam("p_detection", laserProbDetect);  
-  SensorModels::Position2D laserModel(laserMeasVar, laserProbDetect);
-  std::cout << laserModel.ObsMatrix() << std::endl;
-  std::cout << laserModel.ObsCovMatrix() << std::endl;
-  // Create subscriber
-  ros::Subscriber lidar_sub = n.subscribe("/legs", 1, &SensorModels::Position2D::Callback, &laserModel);
+  SensorModels::Position2D laserModel(laserMeasVar, laserProbDetect, std::string{"walrus/base_link"});
+
+  // Create lidar subscriber
+  ros::Subscriber lidar_sub = n.subscribe<geometry_msgs::PoseArray>("/legs", 1, boost::bind(&SensorModels::Position2D::MeasUpdateCallback, &laserModel, _1, &gmPhd) );
+  // &SensorModels::Position2D::Callback, &laserModel);
 
   // Load pruning parameters into tracker
   float truncThresh, mergeThresh;
@@ -55,8 +55,7 @@ int main(int argc, char **argv)
   // Setup main propagation/visualization/publisher loop (timer)
   // ros::Rate loopRate(10);
   ros::Timer mainTimer = n.createTimer(ros::Duration(0.1),[&](const ros::TimerEvent& event){
-    std::cout << "Main Timer in thread #"
-              << std::this_thread::get_id() << std::endl;
+    // std::cout << "Main Timer in thread #" << std::this_thread::get_id() << std::endl;
     // Propagate step
     gmPhd.PropagateState(event.current_real);
 
@@ -66,17 +65,17 @@ int main(int argc, char **argv)
     // Publish/visualize state
     VisualizeState(viz_pub, gmPhd.State());
 
-    std::cout << "End Main Timer" << std::endl;
+    // std::cout << "End Main Timer" << std::endl;
   });
 
   // Dummy timer to test lock/mutex
-  ros::Timer testTimer = n.createTimer(ros::Duration(0.01),[&](const ros::TimerEvent& event){
-    std::lock_guard<std::mutex> lockg(gmPhd.TrackerMutex);
-    std::cout << "Test Timer - simulating work in thread #"
-              << std::this_thread::get_id() << std::endl;
-    ros::Duration(0.05).sleep();
-    std::cout << "Work complete" << std::endl;
-  });
+  // ros::Timer testTimer = n.createTimer(ros::Duration(0.01),[&](const ros::TimerEvent& event){
+  //   std::lock_guard<std::mutex> lockg(gmPhd.TrackerMutex);
+  //   std::cout << "Test Timer - simulating work in thread #"
+  //             << std::this_thread::get_id() << std::endl;
+  //   ros::Duration(0.05).sleep();
+  //   std::cout << "Work complete" << std::endl;
+  // });
 
 
   // ros::spin();

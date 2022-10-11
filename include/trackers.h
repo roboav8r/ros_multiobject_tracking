@@ -4,7 +4,8 @@
 #include <mutex>
 #include <thread>
 
-#include "ros/ros.h"
+#include <ros/ros.h>
+
 #include "gaussian_datatypes.h"
 #include "dynamics_models.h"
 
@@ -45,8 +46,7 @@ namespace MultiObjectTrackers {
                 
                 // Lock resources while modifying them
                 std::lock_guard<std::mutex> guard(TrackerMutex);
-                std::cout << "Begin Prop in thread #"
-              << std::this_thread::get_id() << std::endl;
+                // std::cout << "Begin Prop in thread #" << std::this_thread::get_id() << std::endl;
 
                 dt = (updateTime - _lastUpdated).toSec();
                 Dynamics.TransMatrix(dt);
@@ -60,15 +60,25 @@ namespace MultiObjectTrackers {
 
                 _lastUpdated = updateTime;
 
-                std::cout << "End Prop" << std::endl;
+                // std::cout << "End Prop" << std::endl;
             };
+
+            // Update posterior weights of existing objects during the update step
+            void UpdatePostWeights(const float& probDetection) {
+
+                 // Lock resources while modifying them
+                std::lock_guard<std::mutex> guard(TrackerMutex);
+
+                for (auto& gm : _state.Gaussians ) {
+                    gm.Weight = (1 - probDetection)*gm.Weight;
+                }   
+            }
 
             void Prune() {
                 std::lock_guard<std::mutex> guard(TrackerMutex);
-                std::cout << "Begin prune in thread #"
-              << std::this_thread::get_id() << std::endl;
+                // std::cout << "Begin prune in thread #" << std::this_thread::get_id() << std::endl;
                 _state.prune(_truncThreshold, _mergeThreshold, _maxGaussians);
-                std::cout << "End prune" << std::endl;
+                // std::cout << "End prune" << std::endl;
             }
 
             std::mutex TrackerMutex;

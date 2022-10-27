@@ -74,6 +74,21 @@ namespace MultiObjectTrackers {
                 }   
             }
 
+            // During the measurement update step, add the weighted measurement objects to state
+            void AddMeasurementObjects(const GaussianDataTypes::GaussianMixture<4>& meas_objects) {
+
+                 // Lock resources while modifying them
+                std::lock_guard<std::mutex> guard(TrackerMutex);
+
+                // Reserve memory in _state
+                _state.Gaussians.reserve(_state.Gaussians.size() + meas_objects.Gaussians.size());
+
+                // add measurements to _state
+                for ( auto& gm : meas_objects.Gaussians ) {
+                   _state.Gaussians.emplace_back(std::move(gm)); 
+                }   
+            }
+
             void Prune() {
                 std::lock_guard<std::mutex> guard(TrackerMutex);
                 // std::cout << "Begin prune in thread #" << std::this_thread::get_id() << std::endl;

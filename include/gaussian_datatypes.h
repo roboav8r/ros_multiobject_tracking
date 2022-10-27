@@ -47,8 +47,7 @@ namespace GaussianDataTypes {
         Eigen::Matrix<float, D, 1> Mean;
         Eigen::Matrix<float, D, D> Cov;
         //bool m_isFalseTarget;
-    };
-
+    }; // GaussianModel
 
 
     /* 
@@ -118,7 +117,7 @@ namespace GaussianDataTypes {
             });
 
             return best_index;
-        }
+        } // selectBestGaussian
 
         void selectCloseGaussians(int i_ref, float threshold, std::vector<int> &close_gaussians)
         {
@@ -153,7 +152,7 @@ namespace GaussianDataTypes {
                 }
                 ++i;
             }
-        }
+        } // selectCloseGaussians
 
         GaussianModel<D> mergeGaussians(std::vector<int> &i_gaussians_to_merge, bool b_remove_from_mixture)
         {
@@ -222,7 +221,7 @@ namespace GaussianDataTypes {
             }
 
             return merged_model;
-        }
+        } // mergeGaussians
 
 
         void prune(float trunc_threshold, float merge_threshold, uint max_gaussians)
@@ -285,9 +284,20 @@ namespace GaussianDataTypes {
             }
 
             Gaussians = pruned_targets.Gaussians;
-        }
+        } // prune
 
-    };
+    }; // Gaussian Mixture Class
+
+    /*
+    PROBABILITY DENSITY
+    Helper function used by the measurement update to evaluate a point's probability within a gaussian distribution
+    */
+    template <size_t N>
+    float MultiVarGaussPdf(const Eigen::Matrix<float, N, 1>& point, const Eigen::Matrix<float, N, 1>& mean, const Eigen::Matrix<float, N, N>& cov)
+    {
+        return (1/sqrt((2*KDL::PI*cov).determinant()))*exp((point-mean).transpose()*cov.inverse()*(point-mean));
+        // IMPROVEMENT: use cholesky factorization (https://stackoverflow.com/questions/27385477/how-to-efficiently-use-inverse-and-determinant-in-eigen)
+    }
 
 }
 

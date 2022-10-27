@@ -33,10 +33,11 @@ int main(int argc, char **argv)
   gmPhd.Dynamics.ProbSurvival(pSurvival);
 
   // Load Sensor Model params, create model & subscriber
-  float laserMeasVar, laserProbDetect;
+  float laserMeasVar, laserProbDetect, laserClutterDens;
   n.getParam("meas_variance", laserMeasVar);
-  n.getParam("p_detection", laserProbDetect);  
-  SensorModels::Position2D laserModel(laserMeasVar, laserProbDetect, std::string{"walrus/base_link"});
+  n.getParam("p_detection", laserProbDetect);
+  n.getParam("clutter_density", laserClutterDens);
+  SensorModels::Position2D laserModel(laserMeasVar, laserProbDetect, laserClutterDens, std::string{"walrus/base_link"});
 
   // Create lidar subscriber
   ros::Subscriber lidar_sub = n.subscribe<geometry_msgs::PoseArray>("/legs", 1, boost::bind(&SensorModels::Position2D::MeasUpdateCallback, &laserModel, _1, &gmPhd) );

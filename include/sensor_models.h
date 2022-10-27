@@ -29,9 +29,10 @@ namespace SensorModels {
     {
         public:
             // Construct with sensor variance and detection probability
-            Position2D(float variance, float prob, std::string tracker_frame): 
+            Position2D(float variance, float prob, float clutter_density, std::string tracker_frame): 
             _measVariance(variance), 
             _probDetect(prob),
+            _clutterDensity(clutter_density),
             _trackerFrame(tracker_frame),
             _obsMatrix(Eigen::MatrixXf::Zero(2,4)),
             _obsCovMatrix(Eigen::MatrixXf::Identity(2,2)),
@@ -48,17 +49,12 @@ namespace SensorModels {
             // Members
             void MeasUpdateCallback (const geometry_msgs::PoseArray::ConstPtr& msg, MultiObjectTrackers::GmPhdFilter2D* tracker)
             {
-                ROS_INFO("Position 2D MeasUpdateCallback");
-                ROS_INFO("msg: ");
-                std::cout << (*msg) << std::endl;
-                // ROS_INFO("Tracker: ");
-                // std::cout << tracker.Gaussians() << std::endl;
-
                 // Store/process incoming data
-                _expectedState = tracker->State();
+                // TODO: lock the tracker object here when reading state?
+                _expectedStates = tracker->State();
 
                 // Create update components
-                _nObjects = _expectedState.Gaussians.size();
+                _nObjects = _expectedStates.Gaussians.size();
                 _expectedMeas.clear();
                 _expectedMeas.reserve(_nObjects);
                 _innovCovMatrix.clear();
@@ -68,7 +64,8 @@ namespace SensorModels {
                 _postCovMatrix.clear();
                 _postCovMatrix.reserve(_nObjects);
 
-                for (auto const &obj : _expectedState.Gaussians)
+                // Compute components of expected state Gaussians
+                for (auto const &obj : _expectedStates.Gaussians)
                 {
                     _expectedMeas.push_back(_obsMatrix*obj.Mean);
                     _innovCovMatrix.push_back(_obsCovMatrix + _obsMatrix*obj.Cov*_obsMatrix.transpose());
@@ -79,14 +76,17 @@ namespace SensorModels {
                 // Update weights of existing objects based on detection probability
                 tracker->UpdatePostWeights(_probDetect);
 
-                // TODO reserve additional memory in tracker state for matched targets
-
-                // Iterate through all measurements
+                // Iterate through all measurements, compute measurement/state association probabilities
                 geometry_msgs::PoseStamped originalPose;
                 originalPose.header = msg->header;
-                for (auto& pose : msg->poses )
+                _nDetections = msg->poses.size();
+
+                for (auto& pose : msg->poses ) // Iterate through detections
                 {
-                    // std::cout << "Got measurement" << pose << std::endl;
+                    // Clear and reserve memory
+                    _newStates.Gaussians.clear(); // Clear new state associations
+                    _newStates.Gaussians.reserve(_nObjects); // Reserve memory for each measurement/state match
+
                     originalPose.pose = pose;
                     geometry_msgs::PoseStamped transformedPose;
 
@@ -99,30 +99,51 @@ namespace SensorModels {
                         ros::Duration(1.0).sleep();
                         continue;
                     }
-                    // std::cout << "Transformed" << transformedPose << std::endl;
 
                     _transformedMeasurement(0) = transformedPose.pose.position.x;
                     _transformedMeasurement(1) = transformedPose.pose.position.y;
-                    std::cout << "Transformed \n" << _transformedMeasurement << std::endl;
 
-                    // TODO - iterate through each expected state & add to state
+                    // Compute new measurement association/match with known objects
+                    float matchWeightSum{0};
+                    for (uint nObject = 0; nObject < _nObjects; ++nObject)
+                    {
+                        GaussianDataTypes::GaussianModel<4> matchObject;
+                        matchObject.Weight = _probDetect*_expectedStates.Gaussians[nObject].Weight*GaussianDataTypes::MultiVarGaussPdf<2>(_transformedMeasurement, _expectedMeas[nObject], _innovCovMatrix[nObject]);
+                        matchObject.Mean = _expectedStates.Gaussians[nObject].Mean + _kalmanGain[nObject]*(_transformedMeasurement - _expectedMeas[nObject]);
+                        matchObject.Cov = _postCovMatrix[nObject];
 
-                }
+                        _newStates.Gaussians.emplace_back(std::move(matchObject));
 
-                // Match measurements to expected targets
+                        matchWeightSum += matchObject.Weight; // Compute running sum for normalization
+                    }
 
-            }
+                    // Normalize the new, matched objects' weights
+                    for (GaussianDataTypes::GaussianModel<4> match : _newStates.Gaussians)
+                    {
+                        match.Weight/=(matchWeightSum + _clutterDensity);
+                    }
+
+                    // Add matches to the tracker's state
+                    tracker->AddMeasurementObjects(_newStates);
+
+                } // measurement for loop
+
+
+            } // Measurement update callback
 
         private:
             float _measVariance{0.1};      // Measurement noise (variance)
             float _probDetect{0.75};    // Probability of detection
+            float _clutterDensity{1.0};  // Expected number of false detections for this sensor
 
             Eigen::Matrix<float, 2, 4> _obsMatrix;      // Observation matrix
             Eigen::Matrix<float, 2, 2> _obsCovMatrix;   // Observation covariance matrix
 
-            GaussianDataTypes::GaussianMixture<4> _expectedState;       // Expected/previous state
+            GaussianDataTypes::GaussianMixture<4> _expectedStates;       // Expected/existing states from tracker
+            GaussianDataTypes::GaussianMixture<4> _newStates;            // New states from measurement
 
             int _nObjects;  // number of objects in state
+            int _nDetections; // Number of detections in latest measurement
             std::vector<Eigen::Matrix<float, 2, 1>> _expectedMeas;      // Expected measurement mean
             std::vector<Eigen::Matrix<float, 2, 2>> _innovCovMatrix;    // Innovation covariance matrix
             std::vector<Eigen::Matrix<float, 4, 2>> _kalmanGain;        // Kalman gain matrices
@@ -134,9 +155,9 @@ namespace SensorModels {
             tf2_ros::TransformListener _listener; // Transform listener
             geometry_msgs::TransformStamped _transform;            // transform between sensor and tracker frames
             std::string _trackerFrame;
-    };
+    
+    }; // Position2D class
 
-}
-
+} // SensorModels namespace
 
 #endif // SENSOR_MODELS_H_

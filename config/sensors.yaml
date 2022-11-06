@@ -1,3 +1,3 @@
 meas_variance: .1      # Lateral position variance, meters
 p_detection: .8         # Probability that an object will yield a detection
-clutter_density:  1.0 # Number of false detections expected in sensor range
+clutter_density:  .01 # Number of false detections expected in sensor range

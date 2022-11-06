@@ -21,15 +21,17 @@
 std::string trackerType;
 int n_spatial_dimensions;
 int n_motion_states;
-XmlRpc::XmlRpcValue initialStateParams;
+XmlRpc::XmlRpcValue initialStateParams, birthModelParams, spawnModelParams;
 
-// Declare initial state
-GaussianDataTypes::GaussianMixture<4> initialState;
+// Declare initial gaussian mixtures
+GaussianDataTypes::GaussianMixture<4> initialState, birthModel, spawnModel;
+
 
 // Helper function to convert ROS yaml/XmlRpc object into an initial Gaussian Mixture, x0
 GaussianDataTypes::GaussianMixture<4> ParamsToState(XmlRpc::XmlRpcValue stateParams) {
+    std::cout << "Converting params to state" << std::endl;
 
-GaussianDataTypes::GaussianMixture<4> state;
+    GaussianDataTypes::GaussianMixture<4> state;
 
     // Initialize GM component for populating the initial state belief
     GaussianDataTypes::GaussianModel<4> gmComp;
@@ -114,8 +116,6 @@ void VisualizeState(const ros::Publisher& vizPub, const GaussianDataTypes::Gauss
         velMarker.lifetime = ros::Duration();
         arrayMsg.markers.push_back(velMarker);
 
-
-        //arrayMsg.markers.push_back(velMarker);
         id+=2;
     }
     

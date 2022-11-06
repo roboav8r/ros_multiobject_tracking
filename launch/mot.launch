@@ -4,13 +4,17 @@
     <arg name="dev_file" default="" />
     <arg name="node_name" default="mot_node" />
     <arg name="initial_state" default="state" />
+    <arg name="birth_model" default="birth_model" />
+    <arg name="spawn_model" default="spawn_model" />
     <arg name="tracker" default="gmphd_2d_pos_vel" /> <!-- Tracker configuration file to use --> 
     <arg name="dynamics" default="dynamics" /> <!-- Dynamics configuration file to use -->
     <arg name="sensors" default="sensors" /> <!-- Dynamics configuration file to use -->
 
-    <!-- Load initial state, tracker, and dynamics parameters into the tracker node's namespace from file -->
+    <!-- Load initial state, birth model, tracker, and dynamics parameters into the tracker node's namespace from file -->
     <group ns="$(arg node_name)">
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg initial_state).yaml" />
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg birth_model).yaml" />        
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg spawn_model).yaml" />   
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg tracker).yaml" />
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg dynamics).yaml" />
         <rosparam file="$(find ros_multiobject_tracking)/config/$(arg sensors).yaml" />

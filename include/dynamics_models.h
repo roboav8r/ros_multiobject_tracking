@@ -24,6 +24,7 @@ namespace DynamicsModels {
             LinearDynamics2D() : _dt(0.1), _procNoise(0.1) {
                 _transMatrix.setIdentity();
                 _covMatrix.setZero();
+                _offset.setZero();
                 _updateTransMatrix();
                 _updateCovMatrix();
             };
@@ -31,6 +32,7 @@ namespace DynamicsModels {
             LinearDynamics2D(float deltaT, float sigmaP) : _dt(deltaT), _procNoise(sigmaP) {
                 _transMatrix.setIdentity();
                 _covMatrix.setZero();
+                _offset.setZero();
                 _updateTransMatrix();
                 _updateCovMatrix();
             };
@@ -72,12 +74,16 @@ namespace DynamicsModels {
                 return _covMatrix;
             }
 
+            // Get offset for spawned object
+            Eigen::Matrix<float, 4, 1> Offset() { return _offset; }
+
         private:
             float _pSurvival;      // Object survival probability
             float _dt;             // Timestep
             float _procNoise;      // Process noise, sigma_p
             Eigen::Matrix<float, 4, 4> _transMatrix;
             Eigen::Matrix<float, 4, 4> _covMatrix;
+            Eigen::Matrix<float, 4, 1> _offset;
 
             // TODO: replace _update functions with more clean matrix algebra
             void _updateTransMatrix() {

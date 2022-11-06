@@ -8,6 +8,6 @@ n_spatial_dimensions: 2 # Integer to specify the number of spatial dimensions to
 n_motion_states: 2 # Integer to specify how many motion types to compute. 1 = position only, 2 = position and velocity
 
 # Pruning parameters
-truncation_threshold: .25
+truncation_threshold: .00001
 merge_threshold: 6.25
-max_gaussians:  10
+max_gaussians:  20

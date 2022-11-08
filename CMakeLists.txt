@@ -7,7 +7,7 @@ project(ros_multiobject_tracking)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs genmsg tf2_ros tf2_geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs genmsg tf2_ros tf2_geometry_msgs rostest)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -191,10 +191,12 @@ target_link_libraries(multiobject_tracking_node ${catkin_LIBRARIES})
 ## Testing ##
 #############
 
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ros_multiobject_tracking.cpp)
+# Add gtest based cpp test target and link libraries
+# catkin_add_gtest(test/${PROJECT_NAME}-test src/test/test_ros_multiobject_tracking.cpp)
+add_rostest_gtest(ros_mot_test_node test/ros_mot_launch.test src/test/test_ros_multiobject_tracking.cpp)
+target_link_libraries(ros_mot_test_node ${catkin_LIBRARIES})
 # if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+#   # target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests

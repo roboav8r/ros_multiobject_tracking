@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<launch>
+    <arg name="visualize" default="false" />
+    <arg name="dev_file" default="" />
+    <arg name="node_name" default="mot_node" />
+    <arg name="initial_state" default="state" />
+    <arg name="birth_model" default="birth_model" />
+    <arg name="spawn_model" default="spawn_model" />
+    <arg name="tracker" default="gmphd_2d_pos_vel" /> <!-- Tracker configuration file to use --> 
+    <arg name="dynamics" default="dynamics" /> <!-- Dynamics configuration file to use -->
+    <arg name="sensors" default="sensors" /> <!-- Dynamics configuration file to use -->
+
+    <!-- Load initial state, birth model, tracker, and dynamics parameters into the tracker node's namespace from file -->
+    <group ns="$(arg node_name)">
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg initial_state).yaml" />
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg birth_model).yaml" />        
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg spawn_model).yaml" />   
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg tracker).yaml" />
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg dynamics).yaml" />
+        <rosparam file="$(find ros_multiobject_tracking)/config/$(arg sensors).yaml" />
+    </group>
+
+    <!-- Launch leg tracker node -->
+    <include file="$(find autonomy_leg_detection)/launch/leg_detection.launch" />
+
+    <!-- Play .bag file, if desired -->
+    <group unless="$(eval dev_file == '')" >
+        <node pkg="rosbag" type="play" name="player" output="screen" args="--clock --loop --pause $(find ros_multiobject_tracking)/$(arg dev_file)"/>
+    </group>
+
+    <!-- Launch RViz, if desired -->
+    <group if="$(arg visualize)">
+        <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find ros_multiobject_tracking)/config/mot.rviz"/>
+    </group>
+
+</launch>

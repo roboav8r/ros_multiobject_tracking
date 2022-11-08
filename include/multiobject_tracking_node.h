@@ -28,7 +28,7 @@ GaussianDataTypes::GaussianMixture<4> initialState, birthModel, spawnModel;
 
 
 // Helper function to convert ROS yaml/XmlRpc object into an initial Gaussian Mixture, x0
-GaussianDataTypes::GaussianMixture<4> ParamsToState(XmlRpc::XmlRpcValue stateParams) {
+GaussianDataTypes::GaussianMixture<4> ParamsToState(XmlRpc::XmlRpcValue& stateParams) {
     std::cout << "Converting params to state" << std::endl;
 
     GaussianDataTypes::GaussianMixture<4> state;

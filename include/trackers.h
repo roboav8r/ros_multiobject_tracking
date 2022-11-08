@@ -100,16 +100,18 @@ namespace MultiObjectTrackers {
             // Add the birth and spawn objects to the predicted objects
             void AddBirthToPredicted() {
                 // TODO change state_ to predictedState_?
+                std::lock_guard<std::mutex> guard(TrackerMutex);
                 state_.Gaussians.insert(state_.Gaussians.end(), 
                     birthSpawnObjects_.Gaussians.begin(), 
                     birthSpawnObjects_.Gaussians.begin() + birthSpawnObjects_.Gaussians.size());
             }
 
             // Predict
-            void Predict(const ros::Time updateTime) {
+            void Predict(const ros::Time& updateTime) {
 
                 // Update timestep with actual value
                 dt_ = (updateTime - lastUpdated_).toSec();
+                std::cout << dt_ << std::endl;
 
                 // Run prediction steps
                 PredictBirth();

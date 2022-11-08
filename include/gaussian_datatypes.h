@@ -37,6 +37,15 @@ namespace GaussianDataTypes {
             return *this;
         }
 
+        GaussianModel &operator==(const GaussianModel &rhs)
+        {
+            if (this->Weight == &rhs->Weight &&  
+                this->Mean == &rhs->Mean && 
+                this->Cov == &rhs->Cov) 
+            { return true; }
+            else {return false;}
+        }
+
         void clear()
         {
             Mean.setZero();

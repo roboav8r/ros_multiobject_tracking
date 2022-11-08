@@ -46,7 +46,7 @@ namespace DynamicsModels {
 
             void ProbSurvival(float pS) {this->_pSurvival = pS; };
 
-            // TODO delete void ProcNoise(float sigmaP) {this->_procNoise = sigmaP; };
+            void ProcNoise(float sigmaP) {this->_procNoise = sigmaP; };
 
             /*
              Accessors

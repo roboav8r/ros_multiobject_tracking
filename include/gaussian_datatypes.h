@@ -2,6 +2,7 @@
 #define GAUSSIAN_DATATYPES_H_
 
 #include <Eigen/Dense>
+#include <math.h>
 
 /*
 Namespace for Gaussian model classes and data types
@@ -295,7 +296,7 @@ namespace GaussianDataTypes {
     template <size_t N>
     float MultiVarGaussPdf(const Eigen::Matrix<float, N, 1>& point, const Eigen::Matrix<float, N, 1>& mean, const Eigen::Matrix<float, N, N>& cov)
     {
-        return (1/sqrt((2*KDL::PI*cov).determinant()))*exp((point-mean).transpose()*cov.inverse()*(point-mean));
+        return (1/sqrt((2*M_PI*cov).determinant()))*exp((point-mean).transpose()*cov.inverse()*(point-mean));
         // IMPROVEMENT: use cholesky factorization (https://stackoverflow.com/questions/27385477/how-to-efficiently-use-inverse-and-determinant-in-eigen)
     }
 

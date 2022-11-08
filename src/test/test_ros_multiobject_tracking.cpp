@@ -10,22 +10,52 @@
 #include "sensor_models.h"
 #include "trackers.h"
 
-// #include "foo/foo.h"
-
-TEST(TestSuite, dummy_test)
+/*
+DUMMY test suite
+*/ 
+TEST(DummyTestSuite, dummyTest)
 {
   ASSERT_TRUE(true);
 }
 
-// DYNAMICS MODELS test suite
-// TEST(DynamicsModelSuite, defConstructorTest)
-// {
-//   Eigen::Matrix<>
-  
-// }
-// Test constructor 2
+/*
+DYNAMICS MODEL test suite
+*/ 
+TEST(DynamicsModelSuite, defConstructorTest)
+// Test the default constructor, updateTransMatrix/updateCovMatrix members, and transition/covariance matrix accessors
+{
+  Eigen::Matrix<float,4,4> expTransMatrix = (Eigen::Matrix4f() << 1, 0, .1, 0, 0, 1, 0, .1, 0, 0, 1, 0, 0, 0, 0, 1).finished();
+  Eigen::Matrix<float,4,4> expCovMatrix = (Eigen::Matrix4f() << 2.5e-7, 0, 5e-6, 0, 0, 2.5e-7, 0, 5e-6, 5e-6, 0, 1e-4, 0, 0, 5e-6, 0, 1e-4).finished();
 
+  DynamicsModels::LinearDynamics2D defaultDynModel;
 
+  ASSERT_TRUE(defaultDynModel.TransMatrix().isApprox(expTransMatrix)) << "Expected trans matrix : \n" << expTransMatrix << ",\n got: \n" << defaultDynModel.TransMatrix();
+  ASSERT_TRUE(defaultDynModel.CovMatrix().isApprox(expCovMatrix))<< "Expected cov matrix : \n" << expCovMatrix << ",\n got: \n" << defaultDynModel.CovMatrix();
+}
+
+TEST(DynamicsModelSuite, secondConstructorTest)
+// Test the secondary constructor, updateTransMatrix/updateCovMatrix members, and transition/covariance matrix accessors
+{
+  Eigen::Matrix<float,4,4> expTransMatrix = (Eigen::Matrix4f() << 1, 0, 1.5, 0, 0, 1, 0, 1.5, 0, 0, 1, 0, 0, 0, 0, 1).finished();
+  Eigen::Matrix<float,4,4> expCovMatrix = (Eigen::Matrix4f() << 5.0625, 0, 6.75, 0, 0, 5.0625, 0, 6.75, 6.75, 0, 9, 0, 0, 6.75, 0, 9).finished();
+
+  DynamicsModels::LinearDynamics2D dynModel(1.5,2.0);
+
+  ASSERT_TRUE(dynModel.TransMatrix().isApprox(expTransMatrix)) << "Expected trans matrix : \n" << expTransMatrix << ",\n got: \n" << dynModel.TransMatrix();
+  ASSERT_TRUE(dynModel.CovMatrix().isApprox(expCovMatrix))<< "Expected cov matrix : \n" << expCovMatrix << ",\n got: \n" << dynModel.CovMatrix();
+}
+
+TEST(DynamicsModelSuite, mutatorTest)
+// Test the TransMatrix(dt) and CovMatrix(dt) mutators
+{
+  Eigen::Matrix<float,4,4> expTransMatrix = (Eigen::Matrix4f() << 1, 0, 1.5, 0, 0, 1, 0, 1.5, 0, 0, 1, 0, 0, 0, 0, 1).finished();
+  Eigen::Matrix<float,4,4> expCovMatrix = (Eigen::Matrix4f() << 5.0625, 0, 6.75, 0, 0, 5.0625, 0, 6.75, 6.75, 0, 9, 0, 0, 6.75, 0, 9).finished();
+
+  DynamicsModels::LinearDynamics2D dynModel(0.1,2.0);
+
+  ASSERT_TRUE(dynModel.TransMatrix(1.5).isApprox(expTransMatrix)) << "Expected trans matrix : \n" << expTransMatrix << ",\n got: \n" << dynModel.TransMatrix();
+  ASSERT_TRUE(dynModel.CovMatrix(1.5).isApprox(expCovMatrix))<< "Expected cov matrix : \n" << expCovMatrix << ",\n got: \n" << dynModel.CovMatrix();
+}
 
 
 

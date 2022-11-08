@@ -11,7 +11,7 @@
 #include "trackers.h"
 
 /*
-DUMMY test suite
+// DUMMY test suite
 */ 
 TEST(DummyTestSuite, dummyTest)
 {
@@ -19,9 +19,9 @@ TEST(DummyTestSuite, dummyTest)
 }
 
 /*
-DYNAMICS MODEL test suite
+// DYNAMICS MODEL test suite
 */ 
-TEST(DynamicsModelSuite, defConstructorTest)
+TEST(DynamicsModelSuite, dynConstructorTest)
 // Test the default constructor, updateTransMatrix/updateCovMatrix members, and transition/covariance matrix accessors
 {
   Eigen::Matrix<float,4,4> expTransMatrix = (Eigen::Matrix4f() << 1, 0, .1, 0, 0, 1, 0, .1, 0, 0, 1, 0, 0, 0, 0, 1).finished();
@@ -33,7 +33,7 @@ TEST(DynamicsModelSuite, defConstructorTest)
   ASSERT_TRUE(defaultDynModel.CovMatrix().isApprox(expCovMatrix))<< "Expected cov matrix : \n" << expCovMatrix << ",\n got: \n" << defaultDynModel.CovMatrix();
 }
 
-TEST(DynamicsModelSuite, secondConstructorTest)
+TEST(DynamicsModelSuite, dynConstructorTest2)
 // Test the secondary constructor, updateTransMatrix/updateCovMatrix members, and transition/covariance matrix accessors
 {
   Eigen::Matrix<float,4,4> expTransMatrix = (Eigen::Matrix4f() << 1, 0, 1.5, 0, 0, 1, 0, 1.5, 0, 0, 1, 0, 0, 0, 0, 1).finished();
@@ -45,7 +45,7 @@ TEST(DynamicsModelSuite, secondConstructorTest)
   ASSERT_TRUE(dynModel.CovMatrix().isApprox(expCovMatrix))<< "Expected cov matrix : \n" << expCovMatrix << ",\n got: \n" << dynModel.CovMatrix();
 }
 
-TEST(DynamicsModelSuite, mutatorTest)
+TEST(DynamicsModelSuite, dynMutatorTest)
 // Test the TransMatrix(dt) and CovMatrix(dt) mutators
 {
   Eigen::Matrix<float,4,4> expTransMatrix = (Eigen::Matrix4f() << 1, 0, 1.5, 0, 0, 1, 0, 1.5, 0, 0, 1, 0, 0, 0, 0, 1).finished();
@@ -58,10 +58,47 @@ TEST(DynamicsModelSuite, mutatorTest)
 }
 
 
-
+/*
 // GAUSSIAN DATA TYPES test suite
-// Gaussian Model
-// Test clear()
+*/
+TEST(GaussianDataSuite, gaussModelConsTest)
+{
+    // Test the GaussianModel constructor & clear method
+    Eigen::Matrix<float, 4, 1> expMean = Eigen::MatrixXf::Zero(4,1);
+    Eigen::Matrix<float, 4, 4> expCov = Eigen::MatrixXf::Identity(4,4);
+
+    GaussianDataTypes::GaussianModel<4> gm;
+    ASSERT_EQ(gm.Weight,0.0)<< "Expected gaussian weight : \n" << 0.0 << ",\n got: \n" << gm.Weight;
+    ASSERT_EQ(gm.Mean, expMean)<< "Expected gaussian mean : \n" << expMean << ",\n got: \n" << gm.Mean;
+    ASSERT_EQ(gm.Cov, expCov)<< "Expected gaussian covariance : \n" << expCov << ",\n got: \n" << gm.Cov;
+}
+
+TEST(GaussianDataSuite, gaussModelAsgnmntTest)
+{
+    // Test the GaussianModel assignment operator
+    Eigen::Matrix<float, 4, 1> expMean;
+    Eigen::Matrix<float, 4, 4> expCov;
+    float expWeight{1.0};
+    expMean << 2.0, 3.0, 4.0, 5.0;
+    expCov << 6.0, 0.0, 0.0, 0.0,
+              0.0, 7.0, 0.0, 0.0,
+              0.0, 0.0, 8.0, 0.0,
+              0.0, 0.0, 0.0, 9.0;
+
+    // Form source gaussian model
+    GaussianDataTypes::GaussianModel<4> srcGm;
+    srcGm.Weight = expWeight;
+    srcGm.Mean = expMean;
+    srcGm.Cov = expCov;
+
+    // Assign values to target gaussian model
+    GaussianDataTypes::GaussianModel<4> targetGm;
+    targetGm = srcGm;
+
+    ASSERT_EQ(targetGm.Weight, expWeight)<< "Expected gaussian weight : \n" << expWeight << ",\n got: \n" << targetGm.Weight;
+    ASSERT_EQ(targetGm.Mean, expMean)<< "Expected gaussian mean : \n" << expMean << ",\n got: \n" << targetGm.Mean;
+    ASSERT_EQ(targetGm.Cov, expCov)<< "Expected gaussian covariance : \n" << expCov << ",\n got: \n" << targetGm.Cov;
+}
 
 // Gaussian Mixture
 // Test sort function
@@ -83,17 +120,6 @@ TEST(DynamicsModelSuite, mutatorTest)
 
 
 
-// // Declare a test
-// TEST(TestSuite, testCase1)
-// {
-// <test things here, calling EXPECT_* and/or ASSERT_* macros as needed>
-// }
-
-// // Declare another test
-// TEST(TestSuite, testCase2)
-// {
-// <test things here, calling EXPECT_* and/or ASSERT_* macros as needed>
-// }
 
 // Run all the tests that were declared with TEST()
 int main(int argc, char **argv){

@@ -51,10 +51,12 @@ namespace SensorModels {
             {
                 // Store/process incoming data
                 // TODO: lock the tracker object here when reading state?
+                std::cout << "Measurement Callback"<<std::endl;
                 _expectedStates = tracker->State();
 
                 // Create update components
                 _nObjects = _expectedStates.Gaussians.size();
+                std::cout << "Expecting " << _nObjects << " objects" << std::endl; 
                 _expectedMeas.clear();
                 _expectedMeas.reserve(_nObjects);
                 _innovCovMatrix.clear();
@@ -63,6 +65,8 @@ namespace SensorModels {
                 _kalmanGain.reserve(_nObjects);
                 _postCovMatrix.clear();
                 _postCovMatrix.reserve(_nObjects);
+
+                std::cout << "Computing update components" << std::endl;
 
                 // Compute components of expected state Gaussians
                 for (auto const &obj : _expectedStates.Gaussians)
@@ -73,9 +77,11 @@ namespace SensorModels {
                     _postCovMatrix.push_back((Eigen::Matrix<float, 4, 4>::Identity() - _kalmanGain.back()*_obsMatrix)*obj.Cov);
                 }
 
+                std::cout << "Updating weights of expected targets"<<std::endl;
                 // Update weights of existing objects based on detection probability
                 tracker->UpdatePostWeights(_probDetect);
 
+                std::cout << "Computing measurement matches" <<std::endl;
                 // Iterate through all measurements, compute measurement/state association probabilities
                 geometry_msgs::PoseStamped originalPose;
                 originalPose.header = msg->header;
@@ -128,6 +134,9 @@ namespace SensorModels {
 
                 } // measurement for loop
 
+                // Prune 
+                std::cout << "Pruning" <<std::endl;
+                tracker->Prune();
 
             } // Measurement update callback
 

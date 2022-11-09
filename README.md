@@ -10,6 +10,12 @@ and place them in the `/data` folder.
 roslaunch ros_multiobject_tracking mot.launch dev_file:='data/1-person-3.bag' visualize:=true
 
 ## Debugging using Valgrind
+First, build with debug symbols:
+```
+catkin_make -DCMAKE_BUILD_TYPE=Debug # Or
+catkin build -DCMAKE_BUILD_TYPE=Debug
+```
+
 ```
 roslaunch ros_multiobject_tracking mot_debug_1.launch dev_file:='data/1-person-3.bag' visualize:=true
 roslaunch ros_multiobject_tracking mot_debug_2.launch dev_file:='data/1-person-3.bag' visualize:=true

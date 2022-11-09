@@ -24,19 +24,30 @@ namespace MultiObjectTrackers {
             GmPhdFilter2D() {};
 
             // Construct with initial state at a given time
-            GmPhdFilter2D(GaussianDataTypes::GaussianMixture<4> initState) : state_(initState), lastUpdated_(ros::Time::now()) {};
+            GmPhdFilter2D(GaussianDataTypes::GaussianMixture<4> initState) : lastUpdated_(ros::Time::now()) {
+                stateObjects_->Gaussians = std::move(initState.Gaussians);
+            };
 
             // Construct with initial state, birth model, spawn model, and dynamics model at a given time
-            GmPhdFilter2D(GaussianDataTypes::GaussianMixture<4> init_state,
-            GaussianDataTypes::GaussianMixture<4> birth_model,
-            GaussianDataTypes::GaussianMixture<4> spawn_model) : 
-                state_(init_state),
-                birthModel_(birth_model),
-                spawnModel_(spawn_model),
-                lastUpdated_(ros::Time::now()) {};
+            GmPhdFilter2D(GaussianDataTypes::GaussianMixture<4>& init_state,
+                GaussianDataTypes::GaussianMixture<4>& birth_model,
+                GaussianDataTypes::GaussianMixture<4>& spawn_model) : 
+                    lastUpdated_(ros::Time::now()) 
+                    {
+                        
+                        birthModel_.reset(new GaussianDataTypes::GaussianMixture<4>());
+                        spawnModel_.reset(new GaussianDataTypes::GaussianMixture<4>());
+                        birthSpawnObjects_.reset(new GaussianDataTypes::GaussianMixture<4>());
+                        predictedObjects_.reset(new GaussianDataTypes::GaussianMixture<4>());
+                        stateObjects_.reset(new GaussianDataTypes::GaussianMixture<4>());
+                        extractedObjects_.reset(new GaussianDataTypes::GaussianMixture<4>());
+                        stateObjects_->Gaussians = init_state.Gaussians;
+                        birthModel_->Gaussians = birth_model.Gaussians;
+                        spawnModel_->Gaussians = spawn_model.Gaussians;
+                    };
 
             // Accessors
-            GaussianDataTypes::GaussianMixture<4> State() {return state_;};
+            GaussianDataTypes::GaussianMixture<4> State() {return stateObjects_->Gaussians;};
             ros::Time LastUpdated() {return lastUpdated_;};
 
             // Mutators
@@ -54,19 +65,19 @@ namespace MultiObjectTrackers {
 
             void PredictBirth() {
                 // Reserve space for birth model and all spawned objects
-                birthSpawnObjects_.Gaussians.clear();
-                birthSpawnObjects_.Gaussians.reserve(birthModel_.Gaussians.size() + state_.Gaussians.size()*spawnModel_.Gaussians.size());
+                birthSpawnObjects_->Gaussians.clear();
+                birthSpawnObjects_->Gaussians.reserve(birthModel_->Gaussians.size() + stateObjects_->Gaussians.size()*spawnModel_->Gaussians.size());
 
                 // Add birth model to birthSpawnObjects_ mixture
-                birthSpawnObjects_ = birthModel_;
+                birthSpawnObjects_->Gaussians = birthModel_->Gaussians;
 
                 // Recompute spawn dynamics model
                 SpawnDynamics.TransMatrix(dt_);
                 SpawnDynamics.CovMatrix(dt_);
 
                 // Add spawned objects
-                for (GaussianDataTypes::GaussianModel<4> object : state_.Gaussians){
-                    for (GaussianDataTypes::GaussianModel<4> spawn : spawnModel_.Gaussians) {
+                for (GaussianDataTypes::GaussianModel<4> object : stateObjects_->Gaussians){
+                    for (GaussianDataTypes::GaussianModel<4> spawn : spawnModel_->Gaussians) {
                         
                         GaussianDataTypes::GaussianModel<4> newSpawn;
 
@@ -74,7 +85,7 @@ namespace MultiObjectTrackers {
                         newSpawn.Mean = SpawnDynamics.Offset() + SpawnDynamics.TransMatrix() * object.Mean;
                         newSpawn.Cov = spawn.Cov + SpawnDynamics.TransMatrix() * object.Cov * SpawnDynamics.TransMatrix().transpose();
 
-                        birthSpawnObjects_.Gaussians.push_back(std::move(newSpawn));
+                        birthSpawnObjects_->Gaussians.push_back(std::move(newSpawn));
 
                     }
                 }
@@ -89,7 +100,7 @@ namespace MultiObjectTrackers {
                 Dynamics.TransMatrix(dt_);
                 Dynamics.CovMatrix(dt_);
 
-                for (auto& gm : state_.Gaussians ) {
+                for (auto& gm : stateObjects_->Gaussians ) {
                     gm.Weight = Dynamics.ProbSurvival()*gm.Weight;
                     gm.Mean = Dynamics.TransMatrix()*gm.Mean;
                     gm.Cov = Dynamics.CovMatrix() + Dynamics.TransMatrix()*gm.Cov*Dynamics.TransMatrix().transpose();
@@ -99,11 +110,11 @@ namespace MultiObjectTrackers {
 
             // Add the birth and spawn objects to the predicted objects
             void AddBirthToPredicted() {
-                // TODO change state_ to predictedState_?
+                // TODO change stateObjects_ to predictedState_?
                 std::lock_guard<std::mutex> guard(TrackerMutex);
-                state_.Gaussians.insert(state_.Gaussians.end(), 
-                    birthSpawnObjects_.Gaussians.begin(), 
-                    birthSpawnObjects_.Gaussians.begin() + birthSpawnObjects_.Gaussians.size());
+                stateObjects_->Gaussians.insert(stateObjects_->Gaussians.end(), 
+                    birthSpawnObjects_->Gaussians.begin(), 
+                    birthSpawnObjects_->Gaussians.begin() + birthSpawnObjects_->Gaussians.size());
             }
 
             // Predict
@@ -128,7 +139,7 @@ namespace MultiObjectTrackers {
                  // Lock resources while modifying them
                 std::lock_guard<std::mutex> guard(TrackerMutex);
 
-                for (auto& gm : state_.Gaussians ) {
+                for (auto& gm : stateObjects_->Gaussians ) {
                     gm.Weight = (1 - probDetection)*gm.Weight;
                 }   
             }
@@ -140,27 +151,30 @@ namespace MultiObjectTrackers {
                 std::lock_guard<std::mutex> guard(TrackerMutex);
 
                 // Reserve memory in _state
-                state_.Gaussians.reserve(state_.Gaussians.size() + meas_objects.Gaussians.size());
+                stateObjects_->Gaussians.reserve(stateObjects_->Gaussians.size() + meas_objects.Gaussians.size());
 
                 // add measurements to _state
                 for ( auto& gm : meas_objects.Gaussians ) {
-                   state_.Gaussians.emplace_back(std::move(gm)); 
+                   stateObjects_->Gaussians.emplace_back(std::move(gm)); 
                 }   
             }
 
             void Prune() {
                 std::lock_guard<std::mutex> guard(TrackerMutex);
                 // std::cout << "Begin prune in thread #" << std::this_thread::get_id() << std::endl;
-                state_.prune(truncThreshold_, mergeThreshold_, maxGaussians_);
+                stateObjects_->prune(truncThreshold_, mergeThreshold_, maxGaussians_);
                 // std::cout << "End prune" << std::endl;
             }
 
         private:
             // Gaussian mixtures
-            GaussianDataTypes::GaussianMixture<4> state_; // State estimate
-            GaussianDataTypes::GaussianMixture<4> birthModel_; // Birth model
-            GaussianDataTypes::GaussianMixture<4> spawnModel_; // Spawn model
-            GaussianDataTypes::GaussianMixture<4> birthSpawnObjects_; // birthed and spawned objects
+            
+            std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> birthModel_; // Birth model
+            std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> spawnModel_; // Spawn model
+            std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> birthSpawnObjects_; // birthed and spawned objects
+            std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> predictedObjects_; // birthed and spawned objects
+            std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> stateObjects_; // State estimate
+            std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> extractedObjects_; // State estimate
 
             // Timing
             double dt_{0.1};
@@ -170,7 +184,8 @@ namespace MultiObjectTrackers {
             float truncThreshold_{0.1};          
             float mergeThreshold_{4.0};
             uint maxGaussians_{20};
-    };
+
+    }; // End GMPHD class
 
 }
 

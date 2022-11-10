@@ -1,7 +1,5 @@
 # Spawn model
 spawn_model: 
-    # Define weighted Gaussian Mixture components of the initial birth model
-    # This is a ring of 12 gaussians at radius of 5m, which intersect at ~2 sigma distance
     - {weight: 0.1, mu: [0.0, 0.0, 0.0, 0.0], sigma: [1.0, 1.0, .5, .5]}
 
 spawn_dynamics:

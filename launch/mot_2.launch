@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<launch>
+    <arg name="visualize" default="false" />
+    <arg name="node_name" default="mot_node" />
+
+    <!-- Launch multiobject tracker node -->
+    <node name="$(arg node_name)" pkg="ros_multiobject_tracking" type="multiobject_tracking_node" output="screen" ns="$(arg node_name)" >
+        <param name="visualize" value="$(arg visualize)" />
+    </node>
+
+</launch>

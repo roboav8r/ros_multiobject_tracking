@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 
   // Setup main propagation/visualization/publisher loop (timer)
   // ros::Rate loopRate(10);
-  ros::Timer mainTimer = n.createTimer(ros::Duration(0.25),[&](const ros::TimerEvent& event){
+  ros::Timer mainTimer = n.createTimer(ros::Duration(0.2),[&](const ros::TimerEvent& event){
 
     // // Update timestep
     // gmPhd.Dt = (event.current_real - gmPhd.LastUpdated()).toSec();
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     gmPhd.Predict(event.current_real);
 
     // Prune Gaussian mixture
-    gmPhd.Prune();
+    // gmPhd.Prune();
 
     // Publish/visualize state
     VisualizeState(viz_pub, gmPhd.State());

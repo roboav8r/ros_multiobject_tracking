@@ -1,2 +1,2 @@
-process_variance: 5.0
+process_variance: 0.2
 p_survival: .99

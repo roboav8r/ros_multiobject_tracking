@@ -56,13 +56,18 @@ namespace MultiObjectTrackers {
             void MergeThreshold(const float mergeThresh) {this->mergeThreshold_ = mergeThresh;}
             void MaxGaussians(const uint maxGaussians) {this->maxGaussians_ = maxGaussians;}
 
-            // Public members
+            // Public member variables
             // TODO: make these into vectors if tracking multiple classes with different dynamics models
             DynamicsModels::LinearDynamics2D Dynamics;
             DynamicsModels::LinearDynamics2D SpawnDynamics;
-
             std::mutex TrackerMutex;
+            bool ReadyToPredict{1};
+            bool PredictComplete{0};
+            bool ReadyToUpdate{0};
+            bool UpdateComplete{0};
 
+
+            // Public member functions
             void PredictBirth() {
                 // Reserve space for birth model and all spawned objects
                 birthSpawnObjects_->Gaussians.clear();
@@ -94,7 +99,7 @@ namespace MultiObjectTrackers {
             void PredictState() {
                 
                 // Lock resources while modifying them
-                std::lock_guard<std::mutex> guard(TrackerMutex);
+                //std::lock_guard<std::mutex> guard(TrackerMutex);
                 // std::cout << "Begin Prop in thread #" << std::this_thread::get_id() << std::endl;
 
                 Dynamics.TransMatrix(dt_);
@@ -111,7 +116,7 @@ namespace MultiObjectTrackers {
             // Add the birth and spawn objects to the predicted objects
             void AddBirthToPredicted() {
                 // TODO change stateObjects_ to predictedState_?
-                std::lock_guard<std::mutex> guard(TrackerMutex);
+                //std::lock_guard<std::mutex> guard(TrackerMutex);
                 stateObjects_->Gaussians.insert(stateObjects_->Gaussians.end(), 
                     birthSpawnObjects_->Gaussians.begin(), 
                     birthSpawnObjects_->Gaussians.begin() + birthSpawnObjects_->Gaussians.size());
@@ -120,24 +125,48 @@ namespace MultiObjectTrackers {
             // Predict
             void Predict(const ros::Time& updateTime) {
 
-                // Update timestep with actual value
-                dt_ = (updateTime - lastUpdated_).toSec();
-                std::cout << dt_ << std::endl;
+                std::unique_lock<std::mutex> ul(TrackerMutex,std::defer_lock);
 
-                // Run prediction steps
-                PredictBirth();
-                PredictState();
-                AddBirthToPredicted();
+                // Wait until the lock is available and the tracker is ready to predict
+                if (ReadyToPredict) {
+                    std::cout << "Predicting" << std::endl;
+                    //UpdateComplete = false;
+                    ReadyToPredict = false;
+                    
+                    if (ul.try_lock()) {
+                        //std::cout << "Locking during predict step" << std::endl;
 
-                // Last updated time
-                lastUpdated_ = updateTime;
-            }
+                        // Update timestep with actual value
+                        dt_ = (updateTime - lastUpdated_).toSec();
+                        std::cout << dt_ << std::endl;
+
+                        // Run prediction steps
+                        PredictBirth();
+                        PredictState();
+                        AddBirthToPredicted();
+
+                        // Last updated time
+                        lastUpdated_ = updateTime;
+
+                        // Update status flags
+                        // PredictComplete = true;
+                        ReadyToUpdate = true;
+                        std::cout << "Predict Complete" << std::endl;
+                    }   
+                } //else { // ReadyToPredict && !PredictComplete
+                    //std::cout << "Not ready to Predict" << std::endl;
+                    // std::cout << ReadyToPredict << std::endl;
+                    // std::cout << PredictComplete << std::endl;
+                    // std::cout << ReadyToUpdate << std::endl;
+                    // std::cout << UpdateComplete << std::endl;
+                //}
+            } // Predict
 
             // Update posterior weights of existing objects during the update step
             void UpdatePostWeights(const float& probDetection) {
 
                  // Lock resources while modifying them
-                std::lock_guard<std::mutex> guard(TrackerMutex);
+                // std::lock_guard<std::mutex> guard(TrackerMutex);
 
                 for (auto& gm : stateObjects_->Gaussians ) {
                     gm.Weight = (1 - probDetection)*gm.Weight;
@@ -148,7 +177,7 @@ namespace MultiObjectTrackers {
             void AddMeasurementObjects(const GaussianDataTypes::GaussianMixture<4>& meas_objects) {
 
                  // Lock resources while modifying them
-                std::lock_guard<std::mutex> guard(TrackerMutex);
+                // std::lock_guard<std::mutex> guard(TrackerMutex);
 
                 // Reserve memory in _state
                 stateObjects_->Gaussians.reserve(stateObjects_->Gaussians.size() + meas_objects.Gaussians.size());
@@ -160,15 +189,16 @@ namespace MultiObjectTrackers {
             }
 
             void Prune() {
-                std::lock_guard<std::mutex> guard(TrackerMutex);
+                // std::lock_guard<std::mutex> guard(TrackerMutex);
                 // std::cout << "Begin prune in thread #" << std::this_thread::get_id() << std::endl;
+                std::cout << "Pruning " << stateObjects_->Gaussians.size() << " objects" << std::endl;
                 stateObjects_->prune(truncThreshold_, mergeThreshold_, maxGaussians_);
+                std::cout << "Down to " << stateObjects_->Gaussians.size() << " objects" << std::endl;
                 // std::cout << "End prune" << std::endl;
             }
 
         private:
             // Gaussian mixtures
-            
             std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> birthModel_; // Birth model
             std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> spawnModel_; // Spawn model
             std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> birthSpawnObjects_; // birthed and spawned objects
@@ -176,7 +206,7 @@ namespace MultiObjectTrackers {
             std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> stateObjects_; // State estimate
             std::unique_ptr<GaussianDataTypes::GaussianMixture<4>> extractedObjects_; // State estimate
 
-            // Timing
+            // Timing & control
             double dt_{0.1};
             ros::Time lastUpdated_;   // ROS timestamp when state was last updated
 

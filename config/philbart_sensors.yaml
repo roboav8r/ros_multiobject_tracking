@@ -1,0 +1,24 @@
+
+meas_variance: .1      # Lateral position variance, meters
+p_detection: .8         # Probability that an object will yield a detection
+clutter_density:  2.0 # Number of false detections expected in sensor range
+
+vision_sensor:
+  - { 
+      name: oakd_camera_front,
+      topic: /philbart/yolov4_publisher/color/yolov4_Spatial_detections,
+      msg_type: depthai_ros_msgs/SpatialDetectionArray,
+      meas_variance: 0.01,
+      p_detection: 0.95,
+      clutter_density: 0.01
+    }
+
+lidar_sensor:
+  - { 
+      name: ouster_lidar_scan,
+      topic: /philbart/people_tracked,
+      msg_type: leg_tracker/PersonArray,
+      meas_variance: 0.05,
+      p_detection: 0.90,
+      clutter_density: 0.3
+    }

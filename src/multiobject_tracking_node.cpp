@@ -65,16 +65,23 @@ int main(int argc, char **argv)
   /*
   CREATE SENSOR OBJECTS
   */
+  n.getParam("lidar_sensor", lidarParams);
+  SensorModels::Position2DPersonArray personArrayModel((double)lidarParams[0]["meas_variance"], (double)lidarParams[0]["p_detection"], (double)lidarParams[0]["clutter_density"], std::string{"philbart/map"});
+  ros::Subscriber leg_tracker_sub = n.subscribe<leg_tracker::PersonArray>((std::string)lidarParams[0]["topic"], 1, boost::bind(&SensorModels::Position2DPersonArray::MeasUpdateCallback, &personArrayModel, _1, &gmPhd) );
 
-  // Load Sensor Model params, create model & subscriber
-  float laserMeasVar, laserProbDetect, laserClutterDens;
-  n.getParam("meas_variance", laserMeasVar);
-  n.getParam("p_detection", laserProbDetect);
-  n.getParam("clutter_density", laserClutterDens);
-  SensorModels::Position2D laserModel(laserMeasVar, laserProbDetect, laserClutterDens, std::string{"walrus/base_link"});
+  n.getParam("vision_sensor", visionParams);
+  SensorModels::Position2DSpatialDetectionArray sdArrayModel((double)visionParams[0]["meas_variance"], (double)visionParams[0]["p_detection"], (double)visionParams[0]["clutter_density"], std::string{"philbart/map"}, 1, .6);
+  ros::Subscriber vision_sub = n.subscribe<depthai_ros_msgs::SpatialDetectionArray>((std::string)visionParams[0]["topic"], 1, boost::bind(&SensorModels::Position2DSpatialDetectionArray::MeasUpdateCallback, &sdArrayModel, _1, &gmPhd) );
 
-  // Create lidar subscriber
-  ros::Subscriber lidar_sub = n.subscribe<geometry_msgs::PoseArray>("/legs", 1, boost::bind(&SensorModels::Position2D::MeasUpdateCallback, &laserModel, _1, &gmPhd) );
+  // // Load Sensor Model params, create model & subscriber
+  // float laserMeasVar, laserProbDetect, laserClutterDens;
+  // n.getParam("meas_variance", laserMeasVar);
+  // n.getParam("p_detection", laserProbDetect);
+  // n.getParam("clutter_density", laserClutterDens);
+  // SensorModels::Position2DPoseArray laserModel(laserMeasVar, laserProbDetect, laserClutterDens, std::string{"walrus/base_link"});
+
+  // // Create lidar subscriber
+  // ros::Subscriber lidar_sub = n.subscribe<geometry_msgs::PoseArray>("/legs", 1, boost::bind(&SensorModels::Position2DPoseArray::MeasUpdateCallback, &laserModel, _1, &gmPhd) );
   // &SensorModels::Position2D::Callback, &laserModel);
 
 
@@ -84,7 +91,7 @@ int main(int argc, char **argv)
 
   // Setup main propagation/visualization/publisher loop (timer)
   // ros::Rate loopRate(10);
-  ros::Timer mainTimer = n.createTimer(ros::Duration(0.2),[&](const ros::TimerEvent& event){
+  ros::Timer mainTimer = n.createTimer(ros::Duration(0.25),[&](const ros::TimerEvent& event){
 
     // // Update timestep
     // gmPhd.Dt = (event.current_real - gmPhd.LastUpdated()).toSec();

@@ -21,7 +21,7 @@
 std::string trackerType;
 int n_spatial_dimensions;
 int n_motion_states;
-XmlRpc::XmlRpcValue initialStateParams, birthModelParams, spawnModelParams;
+XmlRpc::XmlRpcValue initialStateParams, birthModelParams, spawnModelParams, lidarParams, visionParams;
 
 // Declare initial gaussian mixtures
 GaussianDataTypes::GaussianMixture<4> initialState, birthModel, spawnModel;
@@ -70,11 +70,11 @@ void VisualizeState(const ros::Publisher& vizPub, const GaussianDataTypes::Gauss
 
     visualization_msgs::Marker posMarker;
     visualization_msgs::Marker velMarker;
-    posMarker.header.frame_id = "walrus/base_link";
+    posMarker.header.frame_id = "philbart/map";
     posMarker.header.stamp = ros::Time::now();
     posMarker.type = positionShape;
     posMarker.action = visualization_msgs::Marker::ADD;
-    velMarker.header.frame_id = "walrus/base_link";
+    velMarker.header.frame_id = "philbart/map";
     velMarker.header.stamp = ros::Time::now();
     velMarker.type = velocityShape;
     velMarker.points.push_back(geometry_msgs::Point());

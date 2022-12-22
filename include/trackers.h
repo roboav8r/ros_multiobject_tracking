@@ -98,10 +98,6 @@ namespace MultiObjectTrackers {
 
             void PredictState() {
                 
-                // Lock resources while modifying them
-                //std::lock_guard<std::mutex> guard(TrackerMutex);
-                // std::cout << "Begin Prop in thread #" << std::this_thread::get_id() << std::endl;
-
                 Dynamics.TransMatrix(dt_);
                 Dynamics.CovMatrix(dt_);
 
@@ -116,7 +112,6 @@ namespace MultiObjectTrackers {
             // Add the birth and spawn objects to the predicted objects
             void AddBirthToPredicted() {
                 // TODO change stateObjects_ to predictedState_?
-                //std::lock_guard<std::mutex> guard(TrackerMutex);
                 stateObjects_->Gaussians.insert(stateObjects_->Gaussians.end(), 
                     birthSpawnObjects_->Gaussians.begin(), 
                     birthSpawnObjects_->Gaussians.begin() + birthSpawnObjects_->Gaussians.size());
@@ -129,13 +124,9 @@ namespace MultiObjectTrackers {
 
                 // Wait until the lock is available and the tracker is ready to predict
                 if (ReadyToPredict) {
-                    std::cout << "Predicting" << std::endl;
-                    //UpdateComplete = false;
                     ReadyToPredict = false;
                     
                     if (ul.try_lock()) {
-                        //std::cout << "Locking during predict step" << std::endl;
-
                         // Update timestep with actual value
                         dt_ = (updateTime - lastUpdated_).toSec();
                         std::cout << dt_ << std::endl;
@@ -149,24 +140,13 @@ namespace MultiObjectTrackers {
                         lastUpdated_ = updateTime;
 
                         // Update status flags
-                        // PredictComplete = true;
                         ReadyToUpdate = true;
-                        std::cout << "Predict Complete" << std::endl;
                     }   
-                } //else { // ReadyToPredict && !PredictComplete
-                    //std::cout << "Not ready to Predict" << std::endl;
-                    // std::cout << ReadyToPredict << std::endl;
-                    // std::cout << PredictComplete << std::endl;
-                    // std::cout << ReadyToUpdate << std::endl;
-                    // std::cout << UpdateComplete << std::endl;
-                //}
+                } 
             } // Predict
 
             // Update posterior weights of existing objects during the update step
             void UpdatePostWeights(const float& probDetection) {
-
-                 // Lock resources while modifying them
-                // std::lock_guard<std::mutex> guard(TrackerMutex);
 
                 for (auto& gm : stateObjects_->Gaussians ) {
                     gm.Weight = (1 - probDetection)*gm.Weight;
@@ -175,9 +155,6 @@ namespace MultiObjectTrackers {
 
             // During the measurement update step, add the weighted measurement objects to state
             void AddMeasurementObjects(const GaussianDataTypes::GaussianMixture<4>& meas_objects) {
-
-                 // Lock resources while modifying them
-                // std::lock_guard<std::mutex> guard(TrackerMutex);
 
                 // Reserve memory in _state
                 stateObjects_->Gaussians.reserve(stateObjects_->Gaussians.size() + meas_objects.Gaussians.size());
@@ -189,12 +166,7 @@ namespace MultiObjectTrackers {
             }
 
             void Prune() {
-                // std::lock_guard<std::mutex> guard(TrackerMutex);
-                // std::cout << "Begin prune in thread #" << std::this_thread::get_id() << std::endl;
-                std::cout << "Pruning " << stateObjects_->Gaussians.size() << " objects" << std::endl;
                 stateObjects_->prune(truncThreshold_, mergeThreshold_, maxGaussians_);
-                std::cout << "Down to " << stateObjects_->Gaussians.size() << " objects" << std::endl;
-                // std::cout << "End prune" << std::endl;
             }
 
         private:

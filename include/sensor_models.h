@@ -55,18 +55,14 @@ namespace SensorModels {
 
                 // Wait until the lock is available and the tracker is ready to predict
                 if (tracker->ReadyToUpdate) {
-                    std::cout << "Ready to Update" << std::endl;
                     
                     if (ul.try_lock()) {
                 
                         // Store/process incoming data
-                        // TODO: lock the tracker object here when reading state?
-                        std::cout << "Measurement Callback"<<std::endl;
                         _expectedStates = tracker->State();
 
                         // Create update components
                         _nObjects = _expectedStates.Gaussians.size();
-                        std::cout << "Expecting " << _nObjects << " objects" << std::endl; 
                         _expectedMeas.clear();
                         _expectedMeas.reserve(_nObjects);
                         _innovCovMatrix.clear();
@@ -75,8 +71,6 @@ namespace SensorModels {
                         _kalmanGain.reserve(_nObjects);
                         _postCovMatrix.clear();
                         _postCovMatrix.reserve(_nObjects);
-
-                        std::cout << "Computing update components" << std::endl;
 
                         // Compute components of expected state Gaussians
                         for (auto const &obj : _expectedStates.Gaussians)
@@ -87,11 +81,9 @@ namespace SensorModels {
                             _postCovMatrix.push_back((Eigen::Matrix<float, 4, 4>::Identity() - _kalmanGain.back()*_obsMatrix)*obj.Cov);
                         }
 
-                        std::cout << "Updating weights of expected targets"<<std::endl;
                         // Update weights of existing objects based on detection probability
                         tracker->UpdatePostWeights(_probDetect);
 
-                        std::cout << "Computing measurement matches" <<std::endl;
                         // Iterate through all measurements, compute measurement/state association probabilities
                         geometry_msgs::PoseStamped originalPose;
                         originalPose.header = msg->header;
@@ -99,7 +91,6 @@ namespace SensorModels {
 
                         for (auto& pose : msg->poses ) // Iterate through detections
                         {
-                            // std::cout << "Update 1" <<std::endl;
                             // Clear and reserve memory
                             _newStates.Gaussians.clear(); // Clear new state associations
                             _newStates.Gaussians.reserve(_nObjects); // Reserve memory for each measurement/state match
@@ -116,7 +107,6 @@ namespace SensorModels {
                                 ros::Duration(1.0).sleep();
                                 continue;
                             }
-                            // std::cout << "Update 2" <<std::endl;
                             _transformedMeasurement(0) = transformedPose.pose.position.x;
                             _transformedMeasurement(1) = transformedPose.pose.position.y;
 
@@ -134,20 +124,14 @@ namespace SensorModels {
                                 matchWeightSum += matchObject.Weight; // Compute running sum for normalization
                             }
 
-                            // std::cout << "Update 3" <<std::endl;
-
                             // Normalize the new, matched objects' weights
                             for (GaussianDataTypes::GaussianModel<4> match : _newStates.Gaussians)
                             {
                                 match.Weight/=(matchWeightSum + _clutterDensity);
                             }
 
-                            // std::cout << "Update 4" <<std::endl;
-
                             // Add matches to the tracker's state
                             tracker->AddMeasurementObjects(_newStates);
-
-                            // std::cout << "Update 5" <<std::endl;
 
                         } // measurement for loop
 
@@ -156,24 +140,16 @@ namespace SensorModels {
                         std::cout << "Update completed" << std::endl;
 
                         // Prune 
-                        std::cout << "Pruning" <<std::endl;
                         tracker->Prune();
 
                         // Prune is final step of update
                         tracker->ReadyToUpdate = false;
                         tracker->ReadyToPredict = true;
-                        std::cout << "Pruning complete. Ready to Predict." << std::endl;
 
                     } else { // try_lock
                         std::cout << "Tracker mutex locked, unable to update" << std::endl;
                     }
-                } else { // Ready to update && !UpdateComplete
-                    std::cout << "Not ready to update" << std::endl;
-                    // std::cout << tracker->ReadyToUpdate << std::endl;
-                    // std::cout << tracker->UpdateComplete << std::endl;
-                    // std::cout << tracker->ReadyToPredict << std::endl;
-                    // std::cout << tracker->PredictComplete << std::endl;
-                }
+                } 
 
             } // Measurement update callback
 
@@ -233,18 +209,14 @@ namespace SensorModels {
 
                 // Wait until the lock is available and the tracker is ready to predict
                 if (tracker->ReadyToUpdate) {
-                    std::cout << "Ready to Update" << std::endl;
                     
                     if (ul.try_lock()) {
                 
                         // Store/process incoming data
-                        // TODO: lock the tracker object here when reading state?
-                        std::cout << "Person Array Measurement Callback"<<std::endl;
                         _expectedStates = tracker->State();
 
                         // Create update components
                         _nObjects = _expectedStates.Gaussians.size();
-                        std::cout << "Expecting " << _nObjects << " objects" << std::endl; 
                         _expectedMeas.clear();
                         _expectedMeas.reserve(_nObjects);
                         _innovCovMatrix.clear();
@@ -253,8 +225,6 @@ namespace SensorModels {
                         _kalmanGain.reserve(_nObjects);
                         _postCovMatrix.clear();
                         _postCovMatrix.reserve(_nObjects);
-
-                        std::cout << "Computing update components" << std::endl;
 
                         // Compute components of expected state Gaussians
                         for (auto const &obj : _expectedStates.Gaussians)
@@ -265,11 +235,9 @@ namespace SensorModels {
                             _postCovMatrix.push_back((Eigen::Matrix<float, 4, 4>::Identity() - _kalmanGain.back()*_obsMatrix)*obj.Cov);
                         }
 
-                        std::cout << "Updating weights of expected targets"<<std::endl;
                         // Update weights of existing objects based on detection probability
                         tracker->UpdatePostWeights(_probDetect);
 
-                        std::cout << "Computing measurement matches" <<std::endl;
                         // Iterate through all measurements, compute measurement/state association probabilities
                         geometry_msgs::PoseStamped originalPose;
                         originalPose.header = msg->header;
@@ -277,7 +245,6 @@ namespace SensorModels {
 
                         for (auto& person : msg->people ) // Iterate through detections
                         {
-                            // std::cout << "Update 1" <<std::endl;
                             // Clear and reserve memory
                             _newStates.Gaussians.clear(); // Clear new state associations
                             _newStates.Gaussians.reserve(_nObjects); // Reserve memory for each measurement/state match
@@ -294,7 +261,6 @@ namespace SensorModels {
                                 ros::Duration(1.0).sleep();
                                 continue;
                             }
-                            // std::cout << "Update 2" <<std::endl;
                             _transformedMeasurement(0) = transformedPose.pose.position.x;
                             _transformedMeasurement(1) = transformedPose.pose.position.y;
 
@@ -312,20 +278,14 @@ namespace SensorModels {
                                 matchWeightSum += matchObject.Weight; // Compute running sum for normalization
                             }
 
-                            // std::cout << "Update 3" <<std::endl;
-
                             // Normalize the new, matched objects' weights
                             for (GaussianDataTypes::GaussianModel<4> match : _newStates.Gaussians)
                             {
                                 match.Weight/=(matchWeightSum + _clutterDensity);
                             }
 
-                            // std::cout << "Update 4" <<std::endl;
-
                             // Add matches to the tracker's state
                             tracker->AddMeasurementObjects(_newStates);
-
-                            // std::cout << "Update 5" <<std::endl;
 
                         } // measurement for loop
 
@@ -340,17 +300,10 @@ namespace SensorModels {
                         // Prune is final step of update
                         tracker->ReadyToUpdate = false;
                         tracker->ReadyToPredict = true;
-                        std::cout << "Pruning complete. Ready to Predict." << std::endl;
 
                     } else { // try_lock
                         std::cout << "Tracker mutex locked, leg_tracker unable to update" << std::endl;
                     }
-                } else { // Ready to update && !UpdateComplete
-                    std::cout << "Not ready to update" << std::endl;
-                    // std::cout << tracker->ReadyToUpdate << std::endl;
-                    // std::cout << tracker->UpdateComplete << std::endl;
-                    // std::cout << tracker->ReadyToPredict << std::endl;
-                    // std::cout << tracker->PredictComplete << std::endl;
                 }
 
             } // Measurement update callback
@@ -412,18 +365,14 @@ class Position2DSpatialDetectionArray
 
                 // Wait until the lock is available and the tracker is ready to predict
                 if (tracker->ReadyToUpdate) {
-                    std::cout << "Ready to Update" << std::endl;
                     
                     if (ul.try_lock()) {
                 
                         // Store/process incoming data
-                        // TODO: lock the tracker object here when reading state?
-                        std::cout << "Spatial Detection Array Measurement Callback"<<std::endl;
                         _expectedStates = tracker->State();
 
                         // Create update components
                         _nObjects = _expectedStates.Gaussians.size();
-                        std::cout << "Expecting " << _nObjects << " objects" << std::endl; 
                         _expectedMeas.clear();
                         _expectedMeas.reserve(_nObjects);
                         _innovCovMatrix.clear();
@@ -432,8 +381,6 @@ class Position2DSpatialDetectionArray
                         _kalmanGain.reserve(_nObjects);
                         _postCovMatrix.clear();
                         _postCovMatrix.reserve(_nObjects);
-
-                        std::cout << "Computing update components" << std::endl;
 
                         // Compute components of expected state Gaussians
                         for (auto const &obj : _expectedStates.Gaussians)
@@ -444,11 +391,9 @@ class Position2DSpatialDetectionArray
                             _postCovMatrix.push_back((Eigen::Matrix<float, 4, 4>::Identity() - _kalmanGain.back()*_obsMatrix)*obj.Cov);
                         }
 
-                        std::cout << "Updating weights of expected targets"<<std::endl;
                         // Update weights of existing objects based on detection probability
                         tracker->UpdatePostWeights(_probDetect);
 
-                        std::cout << "Computing measurement matches" <<std::endl;
                         // Iterate through all measurements, compute measurement/state association probabilities
                         geometry_msgs::PoseStamped originalPose;
                         originalPose.header = msg->header;
@@ -463,7 +408,6 @@ class Position2DSpatialDetectionArray
                                 continue;
                             }
 
-                            // std::cout << "Update 1" <<std::endl;
                             // Clear and reserve memory
                             _newStates.Gaussians.clear(); // Clear new state associations
                             _newStates.Gaussians.reserve(_nObjects); // Reserve memory for each measurement/state match
@@ -499,20 +443,14 @@ class Position2DSpatialDetectionArray
                                 matchWeightSum += matchObject.Weight; // Compute running sum for normalization
                             }
 
-                            // std::cout << "Update 3" <<std::endl;
-
                             // Normalize the new, matched objects' weights
                             for (GaussianDataTypes::GaussianModel<4> match : _newStates.Gaussians)
                             {
                                 match.Weight/=(matchWeightSum + _clutterDensity);
                             }
 
-                            // std::cout << "Update 4" <<std::endl;
-
                             // Add matches to the tracker's state
                             tracker->AddMeasurementObjects(_newStates);
-
-                            // std::cout << "Update 5" <<std::endl;
 
                         } // measurement for loop
 
@@ -532,14 +470,7 @@ class Position2DSpatialDetectionArray
                     } else { // try_lock
                         std::cout << "Tracker mutex locked, spatial_detection_array unable to update" << std::endl;
                     }
-                } else { // Ready to update && !UpdateComplete
-                    std::cout << "Not ready to update" << std::endl;
-                    // std::cout << tracker->ReadyToUpdate << std::endl;
-                    // std::cout << tracker->UpdateComplete << std::endl;
-                    // std::cout << tracker->ReadyToPredict << std::endl;
-                    // std::cout << tracker->PredictComplete << std::endl;
-                }
-
+                } 
             } // Measurement update callback
 
         private:
@@ -571,9 +502,6 @@ class Position2DSpatialDetectionArray
             float _detectionThreshold;
     
     }; // Position2DPersonArray class
-
-
-
 
 } // SensorModels namespace
 

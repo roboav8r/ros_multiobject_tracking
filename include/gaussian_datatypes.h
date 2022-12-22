@@ -311,36 +311,4 @@ namespace GaussianDataTypes {
 
 }
 
-
-
-        // void normalize(float linear_offset)
-        // {
-        //     const float sum = std::accumulate(m_gaussians.begin(), m_gaussians.end(), 0.f, [](const GaussianModel<D> &g1, const GaussianModel<D> &g2) { return g1.m_weight + g2.m_weight; });
-
-        //     if ((linear_offset + sum) != 0.f)
-        //     {
-        //         for (auto &gaussian : m_gaussians)
-        //         {
-        //             gaussian.m_weight /= (linear_offset + sum);
-        //         }
-        //     }
-        // }
-
-        // void normalize(float linear_offset, int start_pos, int stop_pos, int step)
-        // {
-        //     float sum = 0.f;
-        //     for (int i = start_pos; i < stop_pos; ++i)
-        //     {
-        //         sum += m_gaussians[i * step].m_weight;
-        //     }
-
-        //     if ((linear_offset + sum) != 0.f)
-        //     {
-        //         for (int i = start_pos; i < stop_pos; ++i)
-        //         {
-        //             m_gaussians[i * step].m_weight /= (linear_offset + sum);
-        //         }
-        //     }
-        // }
-
 #endif // GAUSSIAN_DATATYPES_H_

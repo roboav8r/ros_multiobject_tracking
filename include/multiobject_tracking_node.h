@@ -123,5 +123,4 @@ void VisualizeState(const ros::Publisher& vizPub, const GaussianDataTypes::Gauss
 
 }
 
-
 #endif  // MULTIOBJECT_TRACKING_NODE_H_

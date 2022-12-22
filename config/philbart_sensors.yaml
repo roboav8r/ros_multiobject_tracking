@@ -1,8 +1,4 @@
 
-meas_variance: .1      # Lateral position variance, meters
-p_detection: .8         # Probability that an object will yield a detection
-clutter_density:  2.0 # Number of false detections expected in sensor range
-
 vision_sensor:
   - { 
       name: oakd_camera_front,
